@@ -38,11 +38,104 @@ void dimensiones(){
 
 }
 
+void crearImagen(){
+    int ** matrizR= new int*[ALTURA];
+    int ** matrizG= new int*[ALTURA];
+    int ** matrizB= new int*[ALTURA];
+    int decimal;
 
+    string line;
+    string imagen;
+
+
+    unsigned long i;
+    for(i=0; i<ALTURA; i++){
+        matrizR[i]= new int[ANCHURA];
+        matrizG[i]= new int[ANCHURA];
+        matrizB[i]= new int[ANCHURA];
+    }
+
+    ifstream myfile ("..\\imagen_entrada"); // Fichero de entrada
+    if (myfile.is_open()) // Si existe o lo encuentra
+    {
+        while(getline (myfile,line)) {
+            line.erase(remove(line.begin(), line.end(), '\r'), line.end());
+            imagen += line;
+        }
+        myfile.close();
+    }
+    else cout << "Unable to open file";
+
+    imagen.erase(remove(imagen.begin(), imagen.end(), ' '), imagen.end());
+
+    int columna=0;
+    int filas=0;
+
+    for(i=16; i < ALTURA * ANCHURA * 2; i= i + 2){
+
+
+        if(columna>ANCHURA){
+            columna=0;
+            filas++;
+        }
+        stringstream ss;
+        ss << hex << imagen.substr(i,2);
+        ss >> decimal;
+        matrizR[filas][columna] = decimal;
+
+        columna++;
+
+
+    }
+
+    columna=0;
+    filas=0;
+    for(i; i < ALTURA * ANCHURA * 2 * 2; i= i + 2){
+
+
+        if(columna>ANCHURA){
+            columna=0;
+            filas++;
+        }
+        stringstream ss;
+        ss << hex << imagen.substr(i,2);
+        ss >> decimal;
+        matrizG[filas][columna] = decimal;
+        //cout << matrizG[filas][columna];
+        columna++;
+
+
+    }
+
+    columna=0;
+    filas=0;
+    for(i; i < ALTURA * ANCHURA * 2 * 3; i= i + 2){
+
+
+        if(columna>ANCHURA){
+            columna=0;
+            filas++;
+        }
+        stringstream ss;
+        ss << hex << imagen.substr(i,2);
+        ss >> decimal;
+        matrizB[filas][columna] = decimal;
+        columna++;
+
+
+    }
+
+
+
+
+
+
+}
 
 int main () {
 
     dimensiones();
+    crearImagen();
 
     return 0;
 }
