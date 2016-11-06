@@ -21,11 +21,42 @@ double **escalaGrises(int **verde, int **rojo, int **azul) {
     return grises;
 }
 
+void histograma(double **escalagrises, int tramos){
+
+    int result[tramos];
+    for (int k = 0; k <tramos ; ++k) {
+        result[k]=0;
+    }
+    double valores_tramo=256/tramos;
+    int contador=0;
+
+    for (int i = 0; i < ALTURA; i++) {
+        for (int j = 0; j < ANCHURA; j++) {
+            while(contador<tramos){
+                if(escalagrises[i][j]>=contador*valores_tramo && escalagrises[i][j]<(contador+1)*valores_tramo ){
+                    result[contador]=result[contador]+1;
+                    contador=0;
+                    break;
+                }
+                else{
+                    contador++;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < tramos; i++) {
+        cout << result[i];
+        cout << " ";
+    }
+
+}
+
 int main() {
 
-    cout << "Hello, World!" << endl;
+    /*PRUEBAS*/
 
-
+    /*FIN PRUEBAS*/
     int **rojo = new int *[ALTURA];
     for (int k = 0; k < ALTURA; ++k) {
         rojo[k] = new int[ANCHURA];
@@ -50,36 +81,36 @@ int main() {
 
     }
 
-    /*IMPRESION MATRIZ INICIAL*/
+    /*IMPRESION MATRIZ ROJO
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
             cout << rojo[i][j];
             cout << " ";
         }
         cout << endl;
-    }
+    }*/
 
     cout << endl;
 
-    /*IMPRESION MATRIZ INICIAL*/
+    /*IMPRESION MATRIZ VERDE
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
             cout << verde[i][j];
             cout << " ";
         }
         cout << endl;
-    }
+    }*/
 
     cout << endl;
 
-    /*IMPRESION MATRIZ INICIAL*/
+    /*IMPRESION MATRIZ AZUL
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
             cout << azul[i][j];
             cout << " ";
         }
         cout << endl;
-    }
+    }*/
 
     cout << endl;
 
@@ -90,6 +121,7 @@ int main() {
 
     resultado = escalaGrises(verde, rojo, azul);
 
+
     /*IMPRESION MATRIZ CAMBIADA*/
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
@@ -98,6 +130,10 @@ int main() {
         }
         cout << endl;
     }
+
+    cout << endl;
+
+    histograma(resultado,4);
 
     return 0;
 }
