@@ -12,7 +12,7 @@ int ANCHURA;
 void dimensiones(){
     string line;
 
-    ifstream myfile ("C:\\Users\\luis\\ClionProjects\\ARCOS_OpenMP\\imagen_entrada"); // Fichero de entrada
+    ifstream myfile ("..\\imagen_entrada"); // Fichero de entrada
     if (myfile.is_open()) // Si existe o lo encuentra
     {
         // objeto strin string en el que se almacena la conversion de string a hexadecimal
