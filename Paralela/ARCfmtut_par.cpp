@@ -10,8 +10,7 @@ using namespace std;
 int altura;
 int anchura;
 
-int main () {
-
+void dimensiones(){
     string line;
 
     ifstream myfile ("C:\\Users\\luis\\ClionProjects\\ARCOS_OpenMP\\imagen_entrada"); // Fichero de entrada
@@ -34,15 +33,19 @@ int main () {
         ss2 >> anchura;
 
         myfile.close();
+
     }
-
-
-
     else cout << "Unable to open file";
+
+}
+
+
+
+int main () {
+
+    dimensiones();
+
 
     return 0;
 }
 
-int dimensiones (){
-
-}
