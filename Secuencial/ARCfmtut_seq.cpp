@@ -12,6 +12,7 @@ int ANCHURA;
 string stringRed;
 string stringGreen;
 string stringBlue;
+string stringDim;
 
 
 void dimensiones() {
@@ -64,6 +65,7 @@ void imagenToString() {
 
     stringImagen.erase(remove(stringImagen.begin(), stringImagen.end(), ' '), stringImagen.end());
 
+    stringDim = stringImagen.substr(0, 16);
     stringRed = stringImagen.substr(16, ALTURA * ANCHURA * 2);
     stringGreen = stringImagen.substr(16 + (ALTURA * ANCHURA * 2), ALTURA * ANCHURA * 2);
     stringBlue = stringImagen.substr(16 + (ALTURA * ANCHURA * 2 * 2), ALTURA * ANCHURA * 2);
@@ -160,15 +162,4 @@ int **stringToMatrizB() {
 int main() {
     dimensiones();
     imagenToString();
-    int **resultado= stringToMatrizR();
-
-    for(int i=0; i < ALTURA; ++i){
-        for(int j=0; j < ANCHURA; ++j){
-            cout << resultado[i][j];
-            cout << " ";
-        }
-        cout << "\n";
-    }
-    cout << "\n";
-    cout << "\n";
 }
