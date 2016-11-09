@@ -3,6 +3,7 @@
 #include <fstream>
 #include <algorithm>
 #include <iomanip>
+#include <tgmath.h>
 
 using namespace std;
 
@@ -69,8 +70,8 @@ void crearImagen(){
     int columna=0;
     int filas=0;
 
-    for(i=16; i < ALTURA * ANCHURA * 2; i= i + 2){
-        if(columna>ANCHURA){
+    for(i=16; i < ALTURA * ANCHURA * 2 + 16; i= i + 2){
+        if(columna>=ANCHURA){
             columna=0;
             filas++;
         }
@@ -84,13 +85,14 @@ void crearImagen(){
 
     columna=0;
     filas=0;
-    for(i; i < ALTURA * ANCHURA * 2 * 2; i= i + 2){
-        if(columna>ANCHURA){
+    int j;
+    for(j=i; j < ALTURA * ANCHURA * 2 * 2+16; j= j + 2){
+        if(columna>=ANCHURA){
             columna=0;
             filas++;
         }
         stringstream ss;
-        ss << hex << imagen.substr(i,2);
+        ss << hex << imagen.substr(j,2);
         ss >> decimal;
         matrizG[filas][columna] = decimal;
         //cout << matrizG[filas][columna];
@@ -101,13 +103,14 @@ void crearImagen(){
 
     columna=0;
     filas=0;
-    for(i; i < ALTURA * ANCHURA * 2 * 3; i= i + 2){
-        if(columna>ANCHURA){
+    int k;
+    for(k=j; k < ALTURA * ANCHURA * 2 * 3 +16; k= k + 2){
+        if(columna>=ANCHURA){
             columna=0;
             filas++;
         }
         stringstream ss;
-        ss << hex << imagen.substr(i,2);
+        ss << hex << imagen.substr(k,2);
         ss >> decimal;
         matrizB[filas][columna] = decimal;
         columna++;
@@ -118,8 +121,8 @@ void crearImagen(){
 
 int mascara (int **rojoImg, int **verdeImg, int **azulImg, int **rojoMascara, int **verdeMascara, int **azulMascara)
 {
-    for(int i=0; i<5; ++i) {
-        for(int j=0; j<5; ++j) {
+    for(int i=0; i<ALTURA; ++i) {
+        for(int j=0; j<ANCHURA; ++j) {
             rojoImg[i][j] = rojoImg[i][j] * rojoMascara[i][j];
             verdeImg[i][j] = verdeImg[i][j] * verdeMascara[i][j];
             azulImg[i][j] = azulImg[i][j] * azulMascara[i][j];
@@ -128,55 +131,123 @@ int mascara (int **rojoImg, int **verdeImg, int **azulImg, int **rojoMascara, in
     return 0;
 }
 
+
+int rotacion(int **matriz){
+    double yMax= ALTURA-1;
+    double xMax= ANCHURA-1;
+    int filaCentro= ceil(yMax/2);
+    int colCentro= ceil(xMax/2);
+    int coorX;
+    int coorY;
+    int coorXrotada;
+    int coorYrotada;
+    int grados=180;
+    double radianes=grados*3.14159/180;
+    int ** rRotada= new int*[ALTURA];
+
+    for(int i=0; i<ALTURA; i++) {
+        rRotada[i] = new int[ANCHURA];
+    }
+
+    for(int i=0; i<ALTURA; ++i){
+        for(int j=0; j<ANCHURA; ++j) {
+           rRotada[i][j]= 6;
+        }
+    }
+
+    for(int i=0; i<ALTURA; ++i){
+        for(int j=0; j<ANCHURA; ++j) {
+            coorX= j - colCentro;
+            coorY= i - filaCentro;
+
+            coorXrotada = round(cos(radianes)*coorX - sin(radianes)*coorY);
+            coorYrotada = round(sin(radianes)*coorX + cos(radianes)*coorY);
+
+            coorX= coorX +colCentro;
+            coorY= coorY +filaCentro;
+            coorXrotada= coorXrotada+colCentro;
+            coorYrotada= coorYrotada+filaCentro;
+
+            if(coorXrotada<0 || coorXrotada> ANCHURA-1 || coorYrotada<0 || coorYrotada> ALTURA-1){
+            }
+            else{
+                rRotada[coorYrotada][coorXrotada]= matrizR[coorY][coorX];
+            }
+        }
+    }
+
+    for(int i=0; i<ALTURA; ++i){
+        for(int j=0; j<ANCHURA; ++j) {
+            cout << rRotada[i][j];
+            cout << ' ';
+        }
+        cout << endl;
+    }
+
+    return 0;
+}
+
+
 int main() {
 
     dimensiones();
     crearImagen();
 
-    int **rojoMascara = new int *[5];
-    for (int i = 0; i < 5; ++i) {
-        rojoMascara[i] = new int[5];
+    int **rojoMascara = new int *[ALTURA];
+    for (int i = 0; i < ALTURA; ++i) {
+        rojoMascara[i] = new int[ANCHURA];
     }
 
-    int **verdeMascara = new int *[5];
-    for (int i = 0; i < 5; ++i) {
-        verdeMascara[i] = new int[5];
+    int **verdeMascara = new int *[ALTURA];
+    for (int i = 0; i < ALTURA; ++i) {
+        verdeMascara[i] = new int[ANCHURA];
     }
 
-    int **azulMascara = new int *[5];
-    for (int i = 0; i < 5; ++i){
-        azulMascara[i] = new int[5];
+    int **azulMascara = new int *[ALTURA];
+    for (int i = 0; i < ALTURA; ++i){
+        azulMascara[i] = new int[ANCHURA];
     }
 
 
-    for(int i=0; i<5; ++i){
-        for(int j=0; j<5; ++j) {
+    for(int i=0; i<ALTURA; ++i){
+        for(int j=0; j<ANCHURA; ++j) {
             rojoMascara[i][j] = 0;
             verdeMascara[i][j] = 0;
             azulMascara[i][j] = 0;
         }
     }
 
-
-    for(int i=0; i<5; ++i){
-        for(int j=0; j<5; ++j) {
-            cout << rojo[i][j];
-            cout << verde[i][j];
-            cout << azul[i][j];
+    /*
+    for(int i=0; i<ALTURA; ++i){
+        for(int j=0; j<ANCHURA; ++j) {
+            cout << matrizR[i][j];
+            cout << matrizG[i][j];
+            cout << matrizB[i][j];
         }
         cout << endl;
     }
 
-    mascara(rojo, verde, azul, rojoMascara, verdeMascara, azulMascara);
+    mascara(matrizR, matrizG, matrizB, rojoMascara, verdeMascara, azulMascara);
 
-    for(int i=0; i<5; ++i){
-        for(int j=0; j<5; ++j) {
-            cout << rojo[i][j];
-            cout << verde[i][j];
-            cout << azul[i][j];
+    for(int i=0; i<ALTURA; ++i){
+        for(int j=0; j<ANCHURA; ++j) {
+            cout << matrizR[i][j];
+            cout << matrizG[i][j];
+            cout << matrizB[i][j];
         }
         cout << endl;
     }
+    */
 
+    for(int i=0; i<ALTURA; ++i){
+        for(int j=0; j<ANCHURA; ++j) {
+            cout << matrizR[i][j];
+            cout << ' ';
+        }
+        cout << endl;
+    }
+    cout << "MATRIZ ROTADA";
+    cout << endl;
+    rotacion(matrizR);
     return 0;
 }
