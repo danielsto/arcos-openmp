@@ -8,6 +8,9 @@ using namespace std;
 
 int ALTURA;
 int ANCHURA;
+int ** matrizR= new int*[ALTURA];
+int ** matrizG= new int*[ALTURA];
+int ** matrizB= new int*[ALTURA];
 
 void dimensiones() {
     string line;
@@ -17,7 +20,6 @@ void dimensiones() {
         // objeto strin string en el que se almacena la conversion de string a hexadecimal
         stringstream hs; //heightstream
         stringstream ws; //widthstream
-
 
         getline(myfile, line);
         //se eliminan los espacios de la primera linea
@@ -89,14 +91,10 @@ void calcularMaximosYMinimos(int **matrizRojo, int **matrizVerde, int **matrizAz
 }
 
 void crearImagen(){
-    int ** matrizR= new int*[ALTURA];
-    int ** matrizG= new int*[ALTURA];
-    int ** matrizB= new int*[ALTURA];
     int decimal;
 
     string line;
     string imagen;
-
 
     unsigned long i;
     for(i=0; i<ALTURA; i++){
@@ -165,9 +163,7 @@ void crearImagen(){
 }
 
 int main () {
-
     dimensiones();
     crearImagen();
-
     return 0;
 }
