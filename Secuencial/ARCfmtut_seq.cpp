@@ -257,7 +257,7 @@ int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
     return 0;
 }
 
-int main() {
+int main(int argv, char** argc) {
     dimensiones();
     imagenToString();
     filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), 5);
