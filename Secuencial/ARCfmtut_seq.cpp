@@ -46,7 +46,7 @@ void crearImagen(){
     string line;
     string imagen;
 
-    unsigned long i;
+    /*unsigned long da problemas con -Werror*/ int i;
     for(i=0; i<ALTURA; i++){
         matrizR[i]= new int[ANCHURA];
         matrizG[i]= new int[ANCHURA];
@@ -84,13 +84,14 @@ void crearImagen(){
 
     columna=0;
     filas=0;
-    for(i; i < ALTURA * ANCHURA * 2 * 2; i= i + 2){
+    int j;
+    for(j = i; j < ALTURA * ANCHURA * 2 * 2; j= j + 2){
         if(columna>ANCHURA){
             columna=0;
             filas++;
         }
         stringstream ss;
-        ss << hex << imagen.substr(i,2);
+        ss << hex << imagen.substr(j,2);
         ss >> decimal;
         matrizG[filas][columna] = decimal;
         //cout << matrizG[filas][columna];
@@ -101,13 +102,14 @@ void crearImagen(){
 
     columna=0;
     filas=0;
-    for(i; i < ALTURA * ANCHURA * 2 * 3; i= i + 2){
+    int k;
+    for(k = j; k < ALTURA * ANCHURA * 2 * 3; k= k + 2){
         if(columna>ANCHURA){
             columna=0;
             filas++;
         }
         stringstream ss;
-        ss << hex << imagen.substr(i,2);
+        ss << hex << imagen.substr(k,2);
         ss >> decimal;
         matrizB[filas][columna] = decimal;
         columna++;
