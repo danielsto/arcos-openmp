@@ -14,29 +14,38 @@ int ANCHURA;
 string stringRed;
 string stringGreen;
 string stringBlue;
-string stringDim;
 
 
+/**
+ * Método que lee el archivo de imagen y extrae los datos de altura y anchura de los 8 primeros bytes.
+ * El método comprueba si el archivo se abre correctamente, mostrando un mensaje de error si no lo hace.
+ * Previa lectura de los bytes, se eliminan los espacios para facilitar la operación de extracción.
+ * Durante la lectura de los bytes, se convierten los valores de notación hexadecimal a decimal,
+ * guardándose estos valores en variables globales.
+ *
+ * @param rutaEntrada Indica la ruta del archivo de entrada a leer.
+ */
 void dimensiones(char *rutaEntrada) {
-    string line;
-    ifstream myfile(rutaEntrada); // Fichero de entrada
-    if (myfile.is_open()) { // Si existe o lo encuentra{
-        // objeto strin string en el que se almacena la conversion de string a hexadecimal
-        stringstream hs; //ALTURAstream
-        stringstream ws; //ANCHURAstream
+    string primeraLinea;
+    ifstream archivo(rutaEntrada);
 
-        getline(myfile, line);
-        //se eliminan los espacios de la primera linea
-        line.erase(remove(line.begin(), line.end(), ' '), line.end());
-        // Obtener a partir de la posición 0 una cadena de longitud 8
-        hs << hex << line.substr(6, 2) + line.substr(4, 2) + line.substr(2, 2) + line.substr(0, 2);
-        hs >> ALTURA;
+    if (archivo.is_open()) {
+        stringstream stringAltura;
+        stringstream stringAnchura;
 
-        // Obtener a partir de la posición 8 una cadena de longitud 8
-        ws << hex << line.substr(14, 2) + line.substr(12, 2) + line.substr(10, 2) + line.substr(8, 2);
-        ws >> ANCHURA;
+        getline(archivo, primeraLinea);
 
-        myfile.close();
+        primeraLinea.erase(remove(primeraLinea.begin(), primeraLinea.end(), ' '), primeraLinea.end());
+
+        stringAltura << hex << primeraLinea.substr(6, 2) + primeraLinea.substr(4, 2) + primeraLinea.substr(2, 2) +
+                               primeraLinea.substr(0, 2);
+        stringAltura >> ALTURA;
+
+        stringAnchura << hex << primeraLinea.substr(14, 2) + primeraLinea.substr(12, 2) + primeraLinea.substr(10, 2) +
+                                primeraLinea.substr(8, 2);
+        stringAnchura >> ANCHURA;
+
+        archivo.close();
 
     } else {
         cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
@@ -45,26 +54,36 @@ void dimensiones(char *rutaEntrada) {
 
 }
 
+/**
+ * Método que lee el archivo de imagen y extrae tres strings que se corresponden a los datos de las
+ * tres matrices de colores RGB que contiene el archivo.
+ * El método comprueba si el archivo se abre correctamente, mostrando un mensaje de error si no lo hace.
+ * El contenido del archivo se inserta en un string, que posteriormente será dividido en tres partes:
+ * una para cada matriz de colores. Se eliminan los retornos de carro y los espacios para facilitar la
+ * lectura del contenido del string.
+ * Los strings resultantes de cada matriz serán guardados como variables globales.
+ *
+ * @param rutaEntrada Indica la ruta del archivo de entrada a leer.
+ */
 void imagenToString(char *rutaEntrada) {
-    string line;
-    string stringImagen;
+    string lineaLeida;
+    string stringImagenCompleta;
 
-    ifstream myfile(rutaEntrada); // Fichero de entrada
+    ifstream archivo(rutaEntrada);
 
-    if (myfile.is_open()) // Si existe o lo encuentra
-    {
-        while (getline(myfile, line)) {
-            line.erase(remove(line.begin(), line.end(), '\r'), line.end());
-            stringImagen += line;
+    if (archivo.is_open()) {
+        while (getline(archivo, lineaLeida)) {
+            lineaLeida.erase(remove(lineaLeida.begin(), lineaLeida.end(), '\r'), lineaLeida.end());
+            stringImagenCompleta += lineaLeida;
         }
-        myfile.close();
+        archivo.close();
 
-        stringImagen.erase(remove(stringImagen.begin(), stringImagen.end(), ' '), stringImagen.end());
+        stringImagenCompleta.erase(remove(stringImagenCompleta.begin(), stringImagenCompleta.end(), ' '),
+                                   stringImagenCompleta.end());
 
-        stringDim = stringImagen.substr(0, 16);
-        stringRed = stringImagen.substr(16, ALTURA * ANCHURA * 2);
-        stringGreen = stringImagen.substr(16 + (ALTURA * ANCHURA * 2), ALTURA * ANCHURA * 2);
-        stringBlue = stringImagen.substr(16 + (ALTURA * ANCHURA * 2 * 2), ALTURA * ANCHURA * 2);
+        stringRed = stringImagenCompleta.substr(16, ALTURA * ANCHURA * 2);
+        stringGreen = stringImagenCompleta.substr(16 + (ALTURA * ANCHURA * 2), ALTURA * ANCHURA * 2);
+        stringBlue = stringImagenCompleta.substr(16 + (ALTURA * ANCHURA * 2 * 2), ALTURA * ANCHURA * 2);
     } else {
         cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
         exit(-1);
@@ -154,8 +173,12 @@ int **stringToMatrizB() {
 }
 
 /**
- * Función que devuelve los valores máximos de píxel dentro de las matrices de color
- * @return
+ * Función que devuelve en un array el valor máximo de cada matriz de color pasada por
+ * parámetros.
+ * @param matrizR
+ * @param matrizG
+ * @param matrizB
+ * @return Array de tres posiciones con los valores máximos de cada matriz
  */
 array<int, 3> maximo(int **matrizR, int **matrizG, int **matrizB) {
     array<int, 3> numerosMaximos = {0, 0, 0};
@@ -177,8 +200,12 @@ array<int, 3> maximo(int **matrizR, int **matrizG, int **matrizB) {
 }
 
 /**
- * Función que devuelve los valores mínimos de píxel dentro de las matrices de color
- * @return
+ * Función que devuelve en un array el valor mínimo de cada matriz de color pasada por
+ * parámetros.
+ * @param matrizR
+ * @param matrizG
+ * @param matrizB
+ * @return Array de tres posiciones con los valores mínimos de cada matriz
  */
 array<int, 3> minimo(int **matrizR, int **matrizG, int **matrizB) {
     array<int, 3> numerosMinimos = {0, 0, 0};
@@ -201,15 +228,15 @@ array<int, 3> minimo(int **matrizR, int **matrizG, int **matrizB) {
 /**
  * Escribe en un archivo los valores máximos y mínimos de todas las matrices de colores, en el
  * orden de Rojo, Verde y Azul
- * @param matrizRojo
- * @param matrizVerde
- * @param matrizAzul
- * @return
+ * @param matrizR
+ * @param matrizG
+ * @param matrizB
+ * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
-void calcularMaximosYMinimos(int **matrizR, int **matrizG, int **matrizB, char *rutaEntrada) {
+void calcularMaximosYMinimos(int **matrizR, int **matrizG, int **matrizB, char *rutaSalida) {
     array<int, 3> maximos = maximo(matrizR, matrizG, matrizB);
     array<int, 3> minimos = minimo(matrizR, matrizG, matrizB);
-    ofstream outputFile(rutaEntrada);
+    ofstream outputFile(rutaSalida);
     outputFile << maximos[0] << " " << minimos[0] << " "
                << maximos[1] << " " << minimos[1] << " "
                << maximos[2] << " " << minimos[2];
