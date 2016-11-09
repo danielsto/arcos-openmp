@@ -1,8 +1,121 @@
 #include <iostream>
+#include <sstream>
+#include <fstream>
+#include <algorithm>
+#include <iomanip>
 
-const int ALTURA = 5;
-const int ANCHURA = 5;
 using namespace std;
+
+int ALTURA;
+int ANCHURA;
+int ** matrizR= new int*[ALTURA];
+int ** matrizG= new int*[ALTURA];
+int ** matrizB= new int*[ALTURA];
+
+void dimensiones(){
+    string line;
+
+    ifstream myfile ("..\\imagen_entrada"); // Fichero de entrada
+    if (myfile.is_open()) // Si existe o lo encuentra
+    {
+        // objeto strin string en el que se almacena la conversion de string a hexadecimal
+        stringstream hs; //heightstream
+        stringstream ws; //widthstream
+
+
+        getline (myfile,line);
+        //se eliminan los espacios de la primera linea
+        line.erase(remove(line.begin(), line.end(), ' '), line.end());
+        // Obtener a partir de la posición 0 una cadena de longitud 8
+        hs << hex << line.substr(6,2) + line.substr(4,2) + line.substr(2,2) + line.substr(0,2);
+        hs >> ALTURA;
+
+        // Obtener a partir de la posición 8 una cadena de longitud 8
+        ws << hex << line.substr(14,2) + line.substr(12,2) + line.substr(10,2) + line.substr(8,2);
+        ws >> ANCHURA;
+
+        myfile.close();
+
+    }
+    else cout << "Unable to open file";
+}
+
+void crearImagen(){
+    int decimal;
+
+    string line;
+    string imagen;
+
+    unsigned long i;
+    for(i=0; i<ALTURA; i++){
+        matrizR[i]= new int[ANCHURA];
+        matrizG[i]= new int[ANCHURA];
+        matrizB[i]= new int[ANCHURA];
+    }
+
+    ifstream myfile ("..\\imagen_entrada"); // Fichero de entrada
+    if (myfile.is_open()) // Si existe o lo encuentra
+    {
+        while(getline (myfile,line)) {
+            line.erase(remove(line.begin(), line.end(), '\r'), line.end());
+            imagen += line;
+        }
+        myfile.close();
+    }
+    else cout << "Unable to open file";
+
+    imagen.erase(remove(imagen.begin(), imagen.end(), ' '), imagen.end());
+
+    int columna=0;
+    int filas=0;
+
+    for(i=16; i < ALTURA * ANCHURA * 2; i= i + 2){
+        if(columna>ANCHURA){
+            columna=0;
+            filas++;
+        }
+        stringstream ss;
+        ss << hex << imagen.substr(i,2);
+        ss >> decimal;
+        matrizR[filas][columna] = decimal;
+
+        columna++;
+    }
+
+    columna=0;
+    filas=0;
+    for(i; i < ALTURA * ANCHURA * 2 * 2; i= i + 2){
+        if(columna>ANCHURA){
+            columna=0;
+            filas++;
+        }
+        stringstream ss;
+        ss << hex << imagen.substr(i,2);
+        ss >> decimal;
+        matrizG[filas][columna] = decimal;
+        //cout << matrizG[filas][columna];
+        columna++;
+
+
+    }
+
+    columna=0;
+    filas=0;
+    for(i; i < ALTURA * ANCHURA * 2 * 3; i= i + 2){
+        if(columna>ANCHURA){
+            columna=0;
+            filas++;
+        }
+        stringstream ss;
+        ss << hex << imagen.substr(i,2);
+        ss >> decimal;
+        matrizB[filas][columna] = decimal;
+        columna++;
+
+
+    }
+}
+
 
 double **escalaGrises(int **verde, int **rojo, int **azul) {
 
@@ -53,72 +166,8 @@ void histograma(double **escalagrises, int tramos){
 }
 
 int main() {
-
-    /*PRUEBAS*/
-
-    /*FIN PRUEBAS*/
-    int **rojo = new int *[ALTURA];
-    for (int k = 0; k < ALTURA; ++k) {
-        rojo[k] = new int[ANCHURA];
-    }
-
-    int **azul = new int *[ALTURA];
-    for (int k = 0; k < ALTURA; ++k) {
-        azul[k] = new int[ANCHURA];
-    }
-
-    int **verde = new int *[ALTURA];
-    for (int k = 0; k < ALTURA; ++k) {
-        verde[k] = new int[ANCHURA];
-    }
-
-    for (int i = 0; i < ALTURA; i++) {
-        for (int j = 0; j < ANCHURA; j++) {
-            rojo[i][j] = 1;
-            verde[i][j] = 2;
-            azul[i][j] = 3;
-        }
-
-    }
-
-    /*IMPRESION MATRIZ ROJO
-    for (int i = 0; i < ALTURA; i++) {
-        for (int j = 0; j < ANCHURA; j++) {
-            cout << rojo[i][j];
-            cout << " ";
-        }
-        cout << endl;
-    }*/
-
-    cout << endl;
-
-    /*IMPRESION MATRIZ VERDE
-    for (int i = 0; i < ALTURA; i++) {
-        for (int j = 0; j < ANCHURA; j++) {
-            cout << verde[i][j];
-            cout << " ";
-        }
-        cout << endl;
-    }*/
-
-    cout << endl;
-
-    /*IMPRESION MATRIZ AZUL
-    for (int i = 0; i < ALTURA; i++) {
-        for (int j = 0; j < ANCHURA; j++) {
-            cout << azul[i][j];
-            cout << " ";
-        }
-        cout << endl;
-    }*/
-
-    cout << endl;
-
-    double **resultado = new double *[ALTURA];
-    for (int k = 0; k < ALTURA; ++k) {
-        resultado[k] = new double[ANCHURA];
-    }
-
+    dimensiones();
+    crearImagen();
     resultado = escalaGrises(verde, rojo, azul);
 
 
