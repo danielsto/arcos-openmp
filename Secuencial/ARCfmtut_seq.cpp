@@ -168,29 +168,12 @@ int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
             float suma = pow(static_cast< double >(i) - centroY, 2) + pow(j - centroX, 2);
             if (suma > pow(static_cast< double >( radio ), 2)) {
                 matrizR[i][j] = matrizR[i][j] * 0.3;
-            }
-        }
-
-    }
-
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            float suma = pow(i - centroY, 2) + pow(j - centroX, 2);
-            if (suma > pow(static_cast< double >( radio ), 2)) {
                 matrizG[i][j] = matrizG[i][j] * 0.59;
-            }
-        }
-    }
-
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            float suma = pow( i - centroY, 2) + pow(j - centroX, 2);
-            if (suma > pow(static_cast< double >( radio ), 2)) {
                 matrizB[i][j] = matrizB[i][j] * 0.11;
             }
         }
-    }
 
+    }
 //    for (int k = 0; k < ALTURA; ++k) {
 //        for (int i = 0; i < ANCHURA; ++i) {
 //            cout << matrizR[k][i] << " | ";
@@ -223,5 +206,5 @@ int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
 int main() {
     dimensiones();
     imagenToString();
-    filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), 15);
+    filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), 5);
 }
