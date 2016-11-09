@@ -25,8 +25,8 @@ void dimensiones() {
     {
 
         // objeto strin string en el que se almacena la conversion de string a hexadecimal
-        stringstream hs; //heightstream
-        stringstream ws; //widthstream
+        stringstream hs; //ALTURAstream
+        stringstream ws; //ANCHURAstream
 
 
         getline(myfile, line);
@@ -158,8 +158,70 @@ int **stringToMatrizB() {
     return matrizAzul;
 }
 
+int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
+
+    int centroX = ANCHURA / 2;
+    int centroY = ALTURA / 2;
+
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ALTURA; ++j) {
+            float suma = pow(static_cast< double >(i) - centroY, 2) + pow(j - centroX, 2);
+            if (suma > pow(static_cast< double >( radio ), 2)) {
+                matrizR[i][j] = matrizR[i][j] * 0.3;
+            }
+        }
+
+    }
+
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            float suma = pow(i - centroY, 2) + pow(j - centroX, 2);
+            if (suma > pow(static_cast< double >( radio ), 2)) {
+                matrizG[i][j] = matrizG[i][j] * 0.59;
+            }
+        }
+    }
+
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            float suma = pow( i - centroY, 2) + pow(j - centroX, 2);
+            if (suma > pow(static_cast< double >( radio ), 2)) {
+                matrizB[i][j] = matrizB[i][j] * 0.11;
+            }
+        }
+    }
+
+//    for (int k = 0; k < ALTURA; ++k) {
+//        for (int i = 0; i < ANCHURA; ++i) {
+//            cout << matrizR[k][i] << " | ";
+//        }
+//        cout << '\n';
+//    }
+//
+//    cout << '\n';
+//    cout << '\n';
+//
+//    for (int k = 0; k < ALTURA; ++k) {
+//        for (int i = 0; i < ANCHURA; ++i) {
+//            cout << matrizG[k][i] << " | ";
+//        }
+//        cout << '\n';
+//    }
+//
+//    cout << '\n';
+//    cout << '\n';
+//
+//    for (int k = 0; k < ALTURA; ++k) {
+//        for (int i = 0; i < ANCHURA; ++i) {
+//            cout << matrizB[k][i] << " | ";
+//        }
+//        cout << '\n';
+//    }
+    return 0;
+}
 
 int main() {
     dimensiones();
     imagenToString();
+    filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), 15);
 }
