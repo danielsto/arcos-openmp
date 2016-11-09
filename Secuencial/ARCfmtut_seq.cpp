@@ -18,7 +18,7 @@ void dimensiones() {
 
     string line;
 
-    ifstream myfile("imagen_entrada.txt");
+    ifstream myfile("..\\imagen_entrada");
 
     if (myfile.is_open()) // Si existe o lo encuentra
     {
@@ -51,7 +51,7 @@ void imagenToString() {
     string line;
     string stringImagen;
 
-    ifstream myfile("imagen_entrada.txt"); // Fichero de entrada
+    ifstream myfile("..\\imagen_entrada"); // Fichero de entrada
 
     if (myfile.is_open()) // Si existe o lo encuentra
     {
