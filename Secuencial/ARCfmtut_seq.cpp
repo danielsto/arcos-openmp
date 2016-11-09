@@ -141,7 +141,7 @@ int rotacion(int **matriz){
     int coorY;
     int coorXrotada;
     int coorYrotada;
-    int grados=180;
+    int grados=90;
     double radianes=grados*3.14159/180;
     int ** rRotada= new int*[ALTURA];
 
