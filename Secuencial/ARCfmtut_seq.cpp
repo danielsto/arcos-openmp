@@ -17,9 +17,9 @@ string stringBlue;
 string stringDim;
 
 
-void dimensiones() {
+void dimensiones(char *rutaEntrada) {
     string line;
-    ifstream myfile("..\\imagen_entrada"); // Fichero de entrada
+    ifstream myfile(rutaEntrada); // Fichero de entrada
     if (myfile.is_open()) { // Si existe o lo encuentra{
         // objeto strin string en el que se almacena la conversion de string a hexadecimal
         stringstream hs; //ALTURAstream
@@ -38,16 +38,18 @@ void dimensiones() {
 
         myfile.close();
 
-    } else cout << "No se puede abrir el fichero";
+    } else {
+        cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
+        exit(-1);
+    }
 
 }
 
-void imagenToString() {
-
+void imagenToString(char *rutaEntrada) {
     string line;
     string stringImagen;
 
-    ifstream myfile("..\\imagen_entrada"); // Fichero de entrada
+    ifstream myfile(rutaEntrada); // Fichero de entrada
 
     if (myfile.is_open()) // Si existe o lo encuentra
     {
@@ -56,15 +58,17 @@ void imagenToString() {
             stringImagen += line;
         }
         myfile.close();
-    } else cout << "No se puede abrir el fichero";
 
-    stringImagen.erase(remove(stringImagen.begin(), stringImagen.end(), ' '), stringImagen.end());
+        stringImagen.erase(remove(stringImagen.begin(), stringImagen.end(), ' '), stringImagen.end());
 
-    stringDim = stringImagen.substr(0, 16);
-    stringRed = stringImagen.substr(16, ALTURA * ANCHURA * 2);
-    stringGreen = stringImagen.substr(16 + (ALTURA * ANCHURA * 2), ALTURA * ANCHURA * 2);
-    stringBlue = stringImagen.substr(16 + (ALTURA * ANCHURA * 2 * 2), ALTURA * ANCHURA * 2);
-
+        stringDim = stringImagen.substr(0, 16);
+        stringRed = stringImagen.substr(16, ALTURA * ANCHURA * 2);
+        stringGreen = stringImagen.substr(16 + (ALTURA * ANCHURA * 2), ALTURA * ANCHURA * 2);
+        stringBlue = stringImagen.substr(16 + (ALTURA * ANCHURA * 2 * 2), ALTURA * ANCHURA * 2);
+    } else {
+        cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
+        exit(-1);
+    }
 }
 
 
@@ -202,16 +206,16 @@ array<int, 3> minimo(int **matrizR, int **matrizG, int **matrizB) {
  * @param matrizAzul
  * @return
  */
-void calcularMaximosYMinimos(int **matrizR, int **matrizG, int **matrizB) {
+void calcularMaximosYMinimos(int **matrizR, int **matrizG, int **matrizB, char *rutaEntrada) {
     array<int, 3> maximos = maximo(matrizR, matrizG, matrizB);
     array<int, 3> minimos = minimo(matrizR, matrizG, matrizB);
-    ofstream outputFile("maxmin.txt");
+    ofstream outputFile(rutaEntrada);
     outputFile << maximos[0] << " " << minimos[0] << " "
                << maximos[1] << " " << minimos[1] << " "
                << maximos[2] << " " << minimos[2];
 }
 
-double **escalaGrises(int **rojo,int **verde, int **azul) {
+double **escalaGrises(int **rojo, int **verde, int **azul) {
 
 
     double **grises = new double *[ALTURA];
@@ -228,24 +232,24 @@ double **escalaGrises(int **rojo,int **verde, int **azul) {
     return grises;
 }
 
-void histograma(double **escalagrises, int tramos){
+void histograma(double **escalagrises, int tramos) {
 
     int result[tramos];
-    for (int k = 0; k <tramos ; ++k) {
-        result[k]=0;
+    for (int k = 0; k < tramos; ++k) {
+        result[k] = 0;
     }
-    double valores_tramo=256/tramos;
-    int contador=0;
+    double valores_tramo = 256 / tramos;
+    int contador = 0;
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
-            while(contador<tramos){
-                if(escalagrises[i][j]>=contador*valores_tramo && escalagrises[i][j]<(contador+1)*valores_tramo ){
-                    result[contador]=result[contador]+1;
-                    contador=0;
+            while (contador < tramos) {
+                if (escalagrises[i][j] >= contador * valores_tramo &&
+                    escalagrises[i][j] < (contador + 1) * valores_tramo) {
+                    result[contador] = result[contador] + 1;
+                    contador = 0;
                     break;
-                }
-                else{
+                } else {
                     contador++;
                 }
             }
@@ -260,7 +264,6 @@ void histograma(double **escalagrises, int tramos){
     }
 
 }
-
 
 
 int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
@@ -308,20 +311,36 @@ int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
     return 0;
 }
 
-int main(int argv, char** argc) {
-    dimensiones();
-    imagenToString();
-    filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), 5);
+int main(int argv, char **argc) {
     if (strcmp(argc[1], "-u") == 0) {
+        if (strcmp(argc[3], "-i") == 0) {
+            dimensiones(argc[4]);
+            imagenToString(argc[4]);
+        } else {
+            cerr << "Es necesario indicar la ruta de la imagen con el parámetro -i." << endl;
+            exit(-1);
+        }
+        if (strcmp(argc[5], "-o") != 0) {
+            cerr << "Es necesario indicar la ruta de la imagen con el parámetro -i." << endl;
+            exit(-1);
+        }
+        if (strcmp(argc[2], "0") == 0) {
+            double **resultado = escalaGrises(stringToMatrizR(), stringToMatrizG(), stringToMatrizB());
+            histograma(resultado, 25);
+        }
         if (strcmp(argc[2], "1") == 0) {
-            calcularMaximosYMinimos(stringToMatrizR(), stringToMatrizG(), stringToMatrizB());
+            calcularMaximosYMinimos(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), argc[6]);
+        }
+        if (strcmp(argc[2], "2") == 0) {
+        }
+        if (strcmp(argc[2], "3") == 0) {
+        }
+        if (strcmp(argc[2], "4") == 0) {
+            filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), 5);
         }
     } else {
-        cout << "Es necesario indicar las acciones con el parámetro -u";
+        cerr << "Es necesario indicar las acciones con el parámetro -u." << endl;
+        exit(-1);
     }
-
-    double **resultado= escalaGrises(stringToMatrizR(),stringToMatrizG(),stringToMatrizB());
-    histograma(resultado,25);
-
     return 0;
 }
