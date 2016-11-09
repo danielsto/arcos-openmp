@@ -8,6 +8,9 @@ using namespace std;
 
 int ALTURA;
 int ANCHURA;
+int ** matrizR= new int*[ALTURA];
+int ** matrizG= new int*[ALTURA];
+int ** matrizB= new int*[ALTURA];
 
 void dimensiones(){
     string line;
@@ -35,18 +38,13 @@ void dimensiones(){
 
     }
     else cout << "Unable to open file";
-
 }
 
 void crearImagen(){
-    int ** matrizR= new int*[ALTURA];
-    int ** matrizG= new int*[ALTURA];
-    int ** matrizB= new int*[ALTURA];
     int decimal;
 
     string line;
     string imagen;
-
 
     unsigned long i;
     for(i=0; i<ALTURA; i++){
@@ -72,8 +70,6 @@ void crearImagen(){
     int filas=0;
 
     for(i=16; i < ALTURA * ANCHURA * 2; i= i + 2){
-
-
         if(columna>ANCHURA){
             columna=0;
             filas++;
@@ -84,15 +80,11 @@ void crearImagen(){
         matrizR[filas][columna] = decimal;
 
         columna++;
-
-
     }
 
     columna=0;
     filas=0;
     for(i; i < ALTURA * ANCHURA * 2 * 2; i= i + 2){
-
-
         if(columna>ANCHURA){
             columna=0;
             filas++;
@@ -110,8 +102,6 @@ void crearImagen(){
     columna=0;
     filas=0;
     for(i; i < ALTURA * ANCHURA * 2 * 3; i= i + 2){
-
-
         if(columna>ANCHURA){
             columna=0;
             filas++;
@@ -124,18 +114,10 @@ void crearImagen(){
 
 
     }
-
-
-
-
-
-
 }
 
 int main () {
-
     dimensiones();
     crearImagen();
-
     return 0;
 }
