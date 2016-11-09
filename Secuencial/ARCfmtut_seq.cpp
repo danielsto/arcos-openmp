@@ -2,15 +2,18 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
+#include <tgmath.h>
 
 using namespace std;
-
 int ALTURA;
 int ANCHURA;
 int ** matrizR= new int*[ALTURA];
 int ** matrizG= new int*[ALTURA];
 int ** matrizB= new int*[ALTURA];
+
+
 
 void dimensiones(){
     string line;
@@ -118,8 +121,88 @@ void crearImagen(){
     }
 }
 
-int main () {
+
+void filtroBN() {
+
+    int centroX = ANCHURA / 2;
+    int centroY = ALTURA / 2;
+    int radio = 16;
+
+    for (int k = 0; k < ALTURA; ++k) {
+        for (int i = 0; i < ANCHURA; ++i)
+            matrizR[k][i] = 1;
+    }
+    for (int k = 0; k < ALTURA; ++k) {
+        for (int i = 0; i < ANCHURA; ++i)
+            matrizG[k][i] = 1;
+    }
+    for (int k = 0; k < ALTURA; ++k){
+        for (int i = 0; i < ANCHURA; ++i)
+            matrizB[k][i] = 1;
+    }
+
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            float suma = pow(i - centroY, 2) + pow(j - centroX, 2);
+            if (suma > pow(radio, 2)) {
+                matrizR[i][j] = matrizR[i][j] * 3;
+            }
+        }
+    }
+
+    /*for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            float suma = pow(i - centroY, 2) + pow(j - centroX, 2);
+            if (suma > pow(radio, 2)) {
+                matrizG[i][j] = matrizG[i][j] * 2;
+            }
+        }
+    }
+
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            float suma = pow(i - centroY, 2) + pow(j - centroX, 2);
+            if (suma > pow(radio, 2)) {
+                matrizB[i][j] = matrizB[i][j] * 3;
+            }
+        }
+    }*/
+
+    for (int k = 0; k < ALTURA; ++k) {
+        for (int i = 0; i < ANCHURA; ++i) {
+            cout << matrizR[k][i] << " | ";
+        }
+        cout << '\n';
+    }
+
+    cout << '\n';
+    cout << '\n';
+
+    /*for (int k = 0; k < ALTURA; ++k) {
+        for (int i = 0; i < ANCHURA; ++i) {
+            cout << matrizG[k][i] << " | ";
+        }
+        cout << '\n';
+    }
+
+    cout << '\n';
+    cout << '\n';
+
+    for (int k = 0; k < ALTURA; ++k) {
+        for (int i = 0; i < ANCHURA; ++i) {
+            cout << matrizB[k][i] << " | ";
+        }
+        cout << '\n';
+    }*/
+
+
+}
+
+int main() {
     dimensiones();
     crearImagen();
-    return 0;
+
+
+    filtroBN();
+
 }
