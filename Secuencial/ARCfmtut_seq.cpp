@@ -1,11 +1,11 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <algorithm>
-#include <cmath>
 #include <iomanip>
+#include <cstring>
 
 using namespace std;
+
 int ALTURA;
 int ANCHURA;
 
@@ -14,10 +14,10 @@ string stringGreen;
 string stringBlue;
 
 
-void dimensiones(){
+void dimensiones() {
     string line;
     ifstream myfile("..\\imagen_entrada"); // Fichero de entrada
-    if (myfile.is_open()) // Si existe o lo encuentra{
+    if (myfile.is_open()) { // Si existe o lo encuentra{
         // objeto strin string en el que se almacena la conversion de string a hexadecimal
         stringstream hs; //heightstream
         stringstream ws; //widthstream
@@ -37,69 +37,6 @@ void dimensiones(){
 
     } else cout << "No se puede abrir el fichero";
 
-    } else cout << "Unable to open file" << endl;
-}
-
-/**
- * Función que devuelve los valores máximos de píxel dentro de las matrices de color
- * @return
- */
-array<int, 3> maximo() {
-    array<int, 3> numerosMaximos = {0, 0, 0};
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            if (matrizR[i][j] > numerosMaximos[0]) {
-                numerosMaximos[0] = matrizR[i][j];
-            }
-            if (matrizG[i][j] > numerosMaximos[1]) {
-                numerosMaximos[1] = matrizG[i][j];
-            }
-            if (matrizB[i][j] > numerosMaximos[2]) {
-                numerosMaximos[2] = matrizB[i][j];
-            }
-        }
-    }
-
-    return numerosMaximos;
-}
-
-/**
- * Función que devuelve los valores mínimos de píxel dentro de las matrices de color
- * @return
- */
-array<int, 3> minimo() {
-    array<int, 3> numerosMinimos = {0, 0, 0};
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            if (matrizR[i][j] < numerosMinimos[0]) {
-                numerosMinimos[0] = matrizR[i][j];
-            }
-            if (matrizG[i][j] < numerosMinimos[1]) {
-                numerosMinimos[1] = matrizG[i][j];
-            }
-            if (matrizB[i][j] < numerosMinimos[2]) {
-                numerosMinimos[2] = matrizB[i][j];
-            }
-        }
-    }
-    return numerosMinimos;
-}
-
-/**
- * Escribe en un archivo los valores máximos y mínimos de todas las matrices de colores, en el
- * orden de Rojo, Verde y Azul
- * @param matrizRojo
- * @param matrizVerde
- * @param matrizAzul
- * @return
- */
-void calcularMaximosYMinimos() {
-    array<int, 3> maximos = maximo();
-    array<int, 3> minimos = minimo();
-    ofstream outputFile("maxmin.txt");
-    outputFile << maximos[0] << " " << minimos[0] << " "
-               << maximos[1] << " " << minimos[1] << " "
-               << maximos[2] << " " << minimos[2];
 }
 
 void imagenToString() {
@@ -208,26 +145,79 @@ int **stringToMatrizB() {
     return matrizAzul;
 }
 
-int main() {
+/**
+ * Función que devuelve los valores máximos de píxel dentro de las matrices de color
+ * @return
+ */
+array<int, 3> maximo(int **matrizR, int **matrizG, int **matrizB) {
+    array<int, 3> numerosMaximos = {0, 0, 0};
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            if (matrizR[i][j] > numerosMaximos[0]) {
+                numerosMaximos[0] = matrizR[i][j];
+            }
+            if (matrizG[i][j] > numerosMaximos[1]) {
+                numerosMaximos[1] = matrizG[i][j];
+            }
+            if (matrizB[i][j] > numerosMaximos[2]) {
+                numerosMaximos[2] = matrizB[i][j];
+            }
+        }
+    }
+
+    return numerosMaximos;
+}
+
+/**
+ * Función que devuelve los valores mínimos de píxel dentro de las matrices de color
+ * @return
+ */
+array<int, 3> minimo(int **matrizR, int **matrizG, int **matrizB) {
+    array<int, 3> numerosMinimos = {0, 0, 0};
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            if (matrizR[i][j] < numerosMinimos[0]) {
+                numerosMinimos[0] = matrizR[i][j];
+            }
+            if (matrizG[i][j] < numerosMinimos[1]) {
+                numerosMinimos[1] = matrizG[i][j];
+            }
+            if (matrizB[i][j] < numerosMinimos[2]) {
+                numerosMinimos[2] = matrizB[i][j];
+            }
+        }
+    }
+    return numerosMinimos;
+}
+
+/**
+ * Escribe en un archivo los valores máximos y mínimos de todas las matrices de colores, en el
+ * orden de Rojo, Verde y Azul
+ * @param matrizRojo
+ * @param matrizVerde
+ * @param matrizAzul
+ * @return
+ */
+void calcularMaximosYMinimos(int **matrizR, int **matrizG, int **matrizB) {
+    array<int, 3> maximos = maximo(matrizR, matrizG, matrizB);
+    array<int, 3> minimos = minimo(matrizR, matrizG, matrizB);
+    ofstream outputFile("maxmin.txt");
+    outputFile << maximos[0] << " " << minimos[0] << " "
+               << maximos[1] << " " << minimos[1] << " "
+               << maximos[2] << " " << minimos[2];
+}
+
+
+int main(int argv, char **argc) {
     dimensiones();
-    crearImagen();
+    imagenToString();
+
     if (strcmp(argc[1], "-u") == 0) {
         if (strcmp(argc[2], "1") == 0) {
-            calcularMaximosYMinimos();
+            calcularMaximosYMinimos(stringToMatrizR(), stringToMatrizG(), stringToMatrizB());
         }
     } else {
         cout << "Es necesario indicar las acciones con el parámetro -u";
     }
-    int **resultado= stringToMatrizR();
-
-    for(int i=0; i < ALTURA; ++i){
-        for(int j=0; j < ANCHURA; ++j){
-            cout << resultado[i][j];
-            cout << " ";
-        }
-        cout << "\n";
-    }
-    cout << "\n";
-    cout << "\n";
     return 0;
 }
