@@ -7,6 +7,7 @@
 #include <cstring>
 
 using namespace std;
+
 int ALTURA;
 int ANCHURA;
 
@@ -210,6 +211,56 @@ void calcularMaximosYMinimos(int **matrizR, int **matrizG, int **matrizB) {
                << maximos[2] << " " << minimos[2];
 }
 
+double **escalaGrises(int **rojo,int **verde, int **azul) {
+
+
+    double **grises = new double *[ALTURA];
+    for (int k = 0; k < ALTURA; ++k) {
+        grises[k] = new double[ANCHURA];
+    }
+
+
+    for (int i = 0; i < ALTURA; i++) {
+        for (int j = 0; j < ANCHURA; j++) {
+            grises[i][j] = rojo[i][j] * 0.3 + verde[i][j] * 0.59 + azul[i][j] * 0.11;
+        }
+    }
+    return grises;
+}
+
+void histograma(double **escalagrises, int tramos){
+
+    int result[tramos];
+    for (int k = 0; k <tramos ; ++k) {
+        result[k]=0;
+    }
+    double valores_tramo=256/tramos;
+    int contador=0;
+
+    for (int i = 0; i < ALTURA; i++) {
+        for (int j = 0; j < ANCHURA; j++) {
+            while(contador<tramos){
+                if(escalagrises[i][j]>=contador*valores_tramo && escalagrises[i][j]<(contador+1)*valores_tramo ){
+                    result[contador]=result[contador]+1;
+                    contador=0;
+                    break;
+                }
+                else{
+                    contador++;
+                }
+            }
+        }
+    }
+
+    ofstream outputFile("histogram.txt");
+
+    for (int i = 0; i < tramos; i++) {
+        outputFile << result[i];
+        outputFile << " ";
+    }
+
+}
+
 
 
 int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
@@ -268,5 +319,9 @@ int main(int argv, char** argc) {
     } else {
         cout << "Es necesario indicar las acciones con el parámetro -u";
     }
+
+    double **resultado= escalaGrises(stringToMatrizR(),stringToMatrizG(),stringToMatrizB());
+    histograma(resultado,25);
+
     return 0;
 }
