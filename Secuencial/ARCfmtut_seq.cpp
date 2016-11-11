@@ -2,28 +2,27 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
-#include <tgmath.h>
 
 using namespace std;
-
 int ALTURA;
 int ANCHURA;
-int ** matrizR= new int*[ALTURA];
-int ** matrizG= new int*[ALTURA];
-int ** matrizB= new int*[ALTURA];
+
+string stringRed;
+string stringGreen;
+string stringBlue;
 
 void dimensiones(){
     string line;
-
     ifstream myfile ("..\\imagen_entrada"); // Fichero de entrada
+
     if (myfile.is_open()) // Si existe o lo encuentra
     {
+
         // objeto strin string en el que se almacena la conversion de string a hexadecimal
         stringstream hs; //heightstream
         stringstream ws; //widthstream
-
-
         getline (myfile,line);
         //se eliminan los espacios de la primera linea
         line.erase(remove(line.begin(), line.end(), ' '), line.end());
@@ -39,85 +38,117 @@ void dimensiones(){
 
     }
     else cout << "Unable to open file";
+
 }
 
-void crearImagen(){
-    int decimal;
+
+void imagenToString(){
 
     string line;
-    string imagen;
-
-    unsigned long i;
-    for(i=0; i<ALTURA; i++){
-        matrizR[i]= new int[ANCHURA];
-        matrizG[i]= new int[ANCHURA];
-        matrizB[i]= new int[ANCHURA];
-    }
-
+    string stringImagen;
     ifstream myfile ("..\\imagen_entrada"); // Fichero de entrada
     if (myfile.is_open()) // Si existe o lo encuentra
     {
         while(getline (myfile,line)) {
             line.erase(remove(line.begin(), line.end(), '\r'), line.end());
-            imagen += line;
+            stringImagen += line;
         }
         myfile.close();
     }
     else cout << "Unable to open file";
 
-    imagen.erase(remove(imagen.begin(), imagen.end(), ' '), imagen.end());
+    stringImagen.erase(remove(stringImagen.begin(), stringImagen.end(), ' '), stringImagen.end());
 
-    int columna=0;
-    int filas=0;
+	stringRed= stringImagen.substr(16, ALTURA*ANCHURA*2);
+	stringGreen= stringImagen.substr(16 +(ALTURA*ANCHURA*2), ALTURA*ANCHURA*2);
+	stringBlue= stringImagen.substr(16 +(ALTURA*ANCHURA*2*2), ALTURA*ANCHURA*2);
 
-    for(i=16; i < ALTURA * ANCHURA * 2 + 16; i= i + 2){
-        if(columna>=ANCHURA){
-            columna=0;
-            filas++;
-        }
-        stringstream ss;
-        ss << hex << imagen.substr(i,2);
-        ss >> decimal;
-        matrizR[filas][columna] = decimal;
-
-        columna++;
-    }
-
-    columna=0;
-    filas=0;
-    int j;
-    for(j=i; j < ALTURA * ANCHURA * 2 * 2+16; j= j + 2){
-        if(columna>=ANCHURA){
-            columna=0;
-            filas++;
-        }
-        stringstream ss;
-        ss << hex << imagen.substr(j,2);
-        ss >> decimal;
-        matrizG[filas][columna] = decimal;
-        //cout << matrizG[filas][columna];
-        columna++;
-
-
-    }
-
-    columna=0;
-    filas=0;
-    int k;
-    for(k=j; k < ALTURA * ANCHURA * 2 * 3 +16; k= k + 2){
-        if(columna>=ANCHURA){
-            columna=0;
-            filas++;
-        }
-        stringstream ss;
-        ss << hex << imagen.substr(k,2);
-        ss >> decimal;
-        matrizB[filas][columna] = decimal;
-        columna++;
-
-
-    }
 }
+
+int **stringToMatrizR(){
+	int **matrizRoja= new int *[ALTURA];
+	for(int i=0; i< ALTURA; ++i){
+		matrizRoja[i]=new int[ANCHURA];
+	}
+
+	int columna=0;
+    int filas=0;
+	int decimal=0;
+
+	int length= stringRed.length();
+
+	for(int i=0; i <length; i= i + 2){
+		if(columna==ANCHURA){
+            columna=0;
+            filas++;
+        }
+		stringstream ss;
+        ss << hex << stringRed.substr(i,2);
+        ss >> decimal;
+        matrizRoja[filas][columna] = decimal;
+		columna++;
+	}
+
+	return matrizRoja;
+}
+
+int **stringToMatrizG(){
+	int **matrizVerde= new int *[ALTURA];
+	for(int i=0; i< ALTURA; ++i){
+		matrizVerde[i]=new int[ANCHURA];
+	}
+
+	int columna=0;
+    int filas=0;
+	int decimal=0;
+
+	int length= stringGreen.length();
+
+	for(int i=0; i <length; i= i + 2){
+		if(columna==ANCHURA){
+            columna=0;
+            filas++;
+        }
+		stringstream ss;
+        ss << hex << stringGreen.substr(i,2);
+        ss >> decimal;
+        matrizVerde[filas][columna] = decimal;
+		columna++;
+	}
+
+
+	return matrizVerde;
+}
+
+
+int **stringToMatrizB(){
+	int **matrizAzul= new int *[ALTURA];
+	for(int i=0; i< ALTURA; ++i){
+		matrizAzul[i]=new int[ANCHURA];
+	}
+
+	int columna=0;
+    int filas=0;
+	int decimal=0;
+
+	int length= stringBlue.length();
+
+	for(int i=0; i <length; i= i + 2){
+		if(columna==ANCHURA){
+            columna=0;
+            filas++;
+        }
+		stringstream ss;
+        ss << hex << stringBlue.substr(i,2);
+        ss >> decimal;
+        matrizAzul[filas][columna] = decimal;
+		columna++;
+	}
+
+
+	return matrizAzul;
+}
+
 
 int mascara (int **rojoImg, int **verdeImg, int **azulImg, int **rojoMascara, int **verdeMascara, int **azulMascara)
 {
@@ -171,7 +202,7 @@ int rotacion(int **matriz){
             if(coorXrotada<0 || coorXrotada> ANCHURA-1 || coorYrotada<0 || coorYrotada> ALTURA-1){
             }
             else{
-                rRotada[coorYrotada][coorXrotada]= matrizR[coorY][coorX];
+                rRotada[coorYrotada][coorXrotada]= matriz[coorY][coorX];
             }
         }
     }
@@ -190,32 +221,11 @@ int rotacion(int **matriz){
 
 int main() {
 
+
     dimensiones();
-    crearImagen();
-
-    int **rojoMascara = new int *[ALTURA];
-    for (int i = 0; i < ALTURA; ++i) {
-        rojoMascara[i] = new int[ANCHURA];
-    }
-
-    int **verdeMascara = new int *[ALTURA];
-    for (int i = 0; i < ALTURA; ++i) {
-        verdeMascara[i] = new int[ANCHURA];
-    }
-
-    int **azulMascara = new int *[ALTURA];
-    for (int i = 0; i < ALTURA; ++i){
-        azulMascara[i] = new int[ANCHURA];
-    }
+	imagenToString();
 
 
-    for(int i=0; i<ALTURA; ++i){
-        for(int j=0; j<ANCHURA; ++j) {
-            rojoMascara[i][j] = 0;
-            verdeMascara[i][j] = 0;
-            azulMascara[i][j] = 0;
-        }
-    }
 
     /*
     for(int i=0; i<ALTURA; ++i){
@@ -239,15 +249,17 @@ int main() {
     }
     */
 
-    for(int i=0; i<ALTURA; ++i){
-        for(int j=0; j<ANCHURA; ++j) {
-            cout << matrizR[i][j];
-            cout << ' ';
+    int **resultado= stringToMatrizR();
+
+    for(int i=0; i < ALTURA; ++i){
+        for(int j=0; j < ANCHURA; ++j){
+            cout << resultado[i][j];
+            cout << " ";
         }
-        cout << endl;
+        cout << "\n";
     }
-    cout << "MATRIZ ROTADA";
-    cout << endl;
-    rotacion(matrizR);
+    cout << "\n";
+
+   rotacion(resultado);
     return 0;
 }
