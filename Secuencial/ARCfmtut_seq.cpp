@@ -72,7 +72,6 @@ void imagenToString() {
 
 }
 
-
 int **stringToMatrizR() {
     int **matrizRoja = new int *[ALTURA];
     for (int i = 0; i < ALTURA; ++i) {
