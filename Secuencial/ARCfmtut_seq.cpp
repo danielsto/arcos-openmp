@@ -12,7 +12,7 @@ int ANCHURA;
 string stringRed;
 string stringGreen;
 string stringBlue;
-string stringDim;
+string stringTotal;
 
 
 void dimensiones() {
@@ -25,8 +25,8 @@ void dimensiones() {
     {
 
         // objeto strin string en el que se almacena la conversion de string a hexadecimal
-        stringstream hs; //ALTURAstream
-        stringstream ws; //ANCHURAstream
+        stringstream hs; //heightstream
+        stringstream ws; //widthstream
 
 
         getline(myfile, line);
@@ -65,7 +65,7 @@ void imagenToString() {
 
     stringImagen.erase(remove(stringImagen.begin(), stringImagen.end(), ' '), stringImagen.end());
 
-    stringDim = stringImagen.substr(0, 16);
+    stringTotal = stringImagen.substr(0, 16);
     stringRed = stringImagen.substr(16, ALTURA * ANCHURA * 2);
     stringGreen = stringImagen.substr(16 + (ALTURA * ANCHURA * 2), ALTURA * ANCHURA * 2);
     stringBlue = stringImagen.substr(16 + (ALTURA * ANCHURA * 2 * 2), ALTURA * ANCHURA * 2);
@@ -129,7 +129,6 @@ int **stringToMatrizG() {
     return matrizVerde;
 }
 
-
 int **stringToMatrizB() {
     int **matrizAzul = new int *[ALTURA];
     for (int i = 0; i < ALTURA; ++i) {
@@ -165,8 +164,8 @@ int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
 
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ALTURA; ++j) {
-            float suma = pow(static_cast< double >(i) - centroY, 2) + pow(j - centroX, 2);
-            if (suma > pow(static_cast< double >( radio ), 2)) {
+            float suma = pow(i - centroY, 2) + pow(j - centroX, 2);
+            if (suma > pow(radio, 2)) {
                 matrizR[i][j] = matrizR[i][j] * 0.3;
                 matrizG[i][j] = matrizG[i][j] * 0.59;
                 matrizB[i][j] = matrizB[i][j] * 0.11;
@@ -174,32 +173,51 @@ int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
         }
 
     }
-//    for (int k = 0; k < ALTURA; ++k) {
-//        for (int i = 0; i < ANCHURA; ++i) {
-//            cout << matrizR[k][i] << " | ";
-//        }
-//        cout << '\n';
-//    }
-//
-//    cout << '\n';
-//    cout << '\n';
-//
-//    for (int k = 0; k < ALTURA; ++k) {
-//        for (int i = 0; i < ANCHURA; ++i) {
-//            cout << matrizG[k][i] << " | ";
-//        }
-//        cout << '\n';
-//    }
-//
-//    cout << '\n';
-//    cout << '\n';
-//
-//    for (int k = 0; k < ALTURA; ++k) {
-//        for (int i = 0; i < ANCHURA; ++i) {
-//            cout << matrizB[k][i] << " | ";
-//        }
-//        cout << '\n';
-//    }
+
+    ofstream outputFile("circle_out.txt");
+
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            stringstream rs; // red stream
+            rs << hex << matrizR[i][j];
+            stringTotal.append(rs.str());
+        }
+    }
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            stringstream gs; // green stream
+            gs << hex << matrizG[i][j];
+            stringTotal.append(gs.str());
+        }
+    }
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            stringstream bs; //blue stream
+            bs << hex << matrizB[i][j];
+            stringTotal.append(bs.str());
+        }
+    }
+
+    /*Formateo del contenido del fichero de salida para hacer
+     *coincidir con el formato del fichero de entrada*/
+
+    unsigned long l = 0;
+    unsigned long k = 0;
+    for (unsigned long i = 0; i < stringTotal.length(); ++i) {
+        if(l == 4){
+            stringTotal.insert(i, 1, ' '); //pone un espacio cada cuatro caracteres
+            l = 0;
+            i++;
+        }
+        l++;
+        if(k == 32){
+            stringTotal.insert(i, 1, '\n'); //pone un salto de linea cada 32 caracteres
+            k=0;
+            i++;
+        }
+        k++;
+    }
+    outputFile << stringTotal;
     return 0;
 }
 
