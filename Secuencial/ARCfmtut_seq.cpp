@@ -16,7 +16,6 @@ string stringGreen;
 string stringBlue;
 string stringTotal;
 
-
 /**
  * Método que lee el archivo de imagen y extrae los datos de altura y anchura de los 8 primeros bytes.
  * El método comprueba si el archivo se abre correctamente, mostrando un mensaje de error si no lo hace.
@@ -90,7 +89,6 @@ void imagenToString(char *rutaEntrada) {
         exit(-1);
     }
 }
-
 
 int **stringToMatrizR() {
     int **matrizRoja = new int *[ALTURA];
@@ -292,8 +290,15 @@ void histograma(double **escalagrises, int tramos) {
     }
 
 }
-
-
+/**
+ * Aplica un filtro blanco y negro a las regiones que quedan fuera del circulo de radio indicado
+ * por parámetro y con centro en el centro de la imagen. Las regiones dentro del círculo quedan
+ * igual.
+ * @param matrizR
+ * @param matrizG
+ * @param matrizB
+ * @param radio Radio del círculo dentro del cual no se aplicará el
+ * */
 int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
 
     int centroX = ANCHURA / 2;
