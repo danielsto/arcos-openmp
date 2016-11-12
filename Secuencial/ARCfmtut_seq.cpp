@@ -4,8 +4,10 @@
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
+#include <cstring>
 
 using namespace std;
+
 int ALTURA;
 int ANCHURA;
 
@@ -15,62 +17,80 @@ string stringBlue;
 string stringTotal;
 
 
-void dimensiones() {
+/**
+ * Método que lee el archivo de imagen y extrae los datos de altura y anchura de los 8 primeros bytes.
+ * El método comprueba si el archivo se abre correctamente, mostrando un mensaje de error si no lo hace.
+ * Previa lectura de los bytes, se eliminan los espacios para facilitar la operación de extracción.
+ * Durante la lectura de los bytes, se convierten los valores de notación hexadecimal a decimal,
+ * guardándose estos valores en variables globales.
+ *
+ * @param rutaEntrada Indica la ruta del archivo de entrada a leer.
+ */
+void dimensiones(char *rutaEntrada) {
+    string primeraLinea;
+    ifstream archivo(rutaEntrada);
 
-    string line;
+    if (archivo.is_open()) {
+        stringstream stringAltura;
+        stringstream stringAnchura;
 
-    ifstream myfile("..\\imagen_entrada");
+        getline(archivo, primeraLinea);
 
-    if (myfile.is_open()) // Si existe o lo encuentra
-    {
+        primeraLinea.erase(remove(primeraLinea.begin(), primeraLinea.end(), ' '), primeraLinea.end());
 
-        // objeto strin string en el que se almacena la conversion de string a hexadecimal
-        stringstream hs; //heightstream
-        stringstream ws; //widthstream
+        stringAltura << hex << primeraLinea.substr(6, 2) + primeraLinea.substr(4, 2) + primeraLinea.substr(2, 2) +
+                               primeraLinea.substr(0, 2);
+        stringAltura >> ALTURA;
 
+        stringAnchura << hex << primeraLinea.substr(14, 2) + primeraLinea.substr(12, 2) + primeraLinea.substr(10, 2) +
+                                primeraLinea.substr(8, 2);
+        stringAnchura >> ANCHURA;
 
-        getline(myfile, line);
-        //se eliminan los espacios de la primera linea
-        line.erase(remove(line.begin(), line.end(), ' '), line.end());
-        // Obtener a partir de la posición 0 una cadena de longitud 8
-        hs << hex << line.substr(6, 2) + line.substr(4, 2) + line.substr(2, 2) + line.substr(0, 2);
-        hs >> ALTURA;
+        archivo.close();
 
-        // Obtener a partir de la posición 8 una cadena de longitud 8
-        ws << hex << line.substr(14, 2) + line.substr(12, 2) + line.substr(10, 2) + line.substr(8, 2);
-        ws >> ANCHURA;
-
-
-        myfile.close();
-
-    } else cout << "No se puede abrir el fichero";
+    } else {
+        cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
+        exit(-1);
+    }
 
 }
 
-void imagenToString() {
+/**
+ * Método que lee el archivo de imagen y extrae tres strings que se corresponden a los datos de las
+ * tres matrices de colores RGB que contiene el archivo.
+ * El método comprueba si el archivo se abre correctamente, mostrando un mensaje de error si no lo hace.
+ * El contenido del archivo se inserta en un string, que posteriormente será dividido en tres partes:
+ * una para cada matriz de colores. Se eliminan los retornos de carro y los espacios para facilitar la
+ * lectura del contenido del string.
+ * Los strings resultantes de cada matriz serán guardados como variables globales.
+ *
+ * @param rutaEntrada Indica la ruta del archivo de entrada a leer.
+ */
+void imagenToString(char *rutaEntrada) {
+    string lineaLeida;
+    string stringImagenCompleta;
 
-    string line;
-    string stringImagen;
+    ifstream archivo(rutaEntrada);
 
-    ifstream myfile("..\\imagen_entrada"); // Fichero de entrada
-
-    if (myfile.is_open()) // Si existe o lo encuentra
-    {
-        while (getline(myfile, line)) {
-            line.erase(remove(line.begin(), line.end(), '\r'), line.end());
-            stringImagen += line;
+    if (archivo.is_open()) {
+        while (getline(archivo, lineaLeida)) {
+            lineaLeida.erase(remove(lineaLeida.begin(), lineaLeida.end(), '\r'), lineaLeida.end());
+            stringImagenCompleta += lineaLeida;
         }
-        myfile.close();
-    } else cout << "No se puede abrir el fichero";
+        archivo.close();
 
-    stringImagen.erase(remove(stringImagen.begin(), stringImagen.end(), ' '), stringImagen.end());
+        stringImagenCompleta.erase(remove(stringImagenCompleta.begin(), stringImagenCompleta.end(), ' '),
+                                   stringImagenCompleta.end());
 
-    stringTotal = stringImagen.substr(0, 16);
-    stringRed = stringImagen.substr(16, ALTURA * ANCHURA * 2);
-    stringGreen = stringImagen.substr(16 + (ALTURA * ANCHURA * 2), ALTURA * ANCHURA * 2);
-    stringBlue = stringImagen.substr(16 + (ALTURA * ANCHURA * 2 * 2), ALTURA * ANCHURA * 2);
-
+        stringRed = stringImagenCompleta.substr(16, ALTURA * ANCHURA * 2);
+        stringGreen = stringImagenCompleta.substr(16 + (ALTURA * ANCHURA * 2), ALTURA * ANCHURA * 2);
+        stringBlue = stringImagenCompleta.substr(16 + (ALTURA * ANCHURA * 2 * 2), ALTURA * ANCHURA * 2);
+    } else {
+        cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
+        exit(-1);
+    }
 }
+
 
 int **stringToMatrizR() {
     int **matrizRoja = new int *[ALTURA];
@@ -123,10 +143,9 @@ int **stringToMatrizG() {
         matrizVerde[filas][columna] = decimal;
         columna++;
     }
-
-
     return matrizVerde;
 }
+
 
 int **stringToMatrizB() {
     int **matrizAzul = new int *[ALTURA];
@@ -151,10 +170,129 @@ int **stringToMatrizB() {
         matrizAzul[filas][columna] = decimal;
         columna++;
     }
-
-
     return matrizAzul;
 }
+
+/**
+ * Función que devuelve en un array el valor máximo de cada matriz de color pasada por
+ * parámetros.
+ * @param matrizR
+ * @param matrizG
+ * @param matrizB
+ * @return Array de tres posiciones con los valores máximos de cada matriz
+ */
+array<int, 3> maximo(int **matrizR, int **matrizG, int **matrizB) {
+    array<int, 3> numerosMaximos = {0, 0, 0};
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            if (matrizR[i][j] > numerosMaximos[0]) {
+                numerosMaximos[0] = matrizR[i][j];
+            }
+            if (matrizG[i][j] > numerosMaximos[1]) {
+                numerosMaximos[1] = matrizG[i][j];
+            }
+            if (matrizB[i][j] > numerosMaximos[2]) {
+                numerosMaximos[2] = matrizB[i][j];
+            }
+        }
+    }
+
+    return numerosMaximos;
+}
+
+/**
+ * Función que devuelve en un array el valor mínimo de cada matriz de color pasada por
+ * parámetros.
+ * @param matrizR
+ * @param matrizG
+ * @param matrizB
+ * @return Array de tres posiciones con los valores mínimos de cada matriz
+ */
+array<int, 3> minimo(int **matrizR, int **matrizG, int **matrizB) {
+    array<int, 3> numerosMinimos = {0, 0, 0};
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            if (matrizR[i][j] < numerosMinimos[0]) {
+                numerosMinimos[0] = matrizR[i][j];
+            }
+            if (matrizG[i][j] < numerosMinimos[1]) {
+                numerosMinimos[1] = matrizG[i][j];
+            }
+            if (matrizB[i][j] < numerosMinimos[2]) {
+                numerosMinimos[2] = matrizB[i][j];
+            }
+        }
+    }
+    return numerosMinimos;
+}
+
+/**
+ * Escribe en un archivo los valores máximos y mínimos de todas las matrices de colores, en el
+ * orden de Rojo, Verde y Azul
+ * @param matrizR
+ * @param matrizG
+ * @param matrizB
+ * @param rutaSalida Archivo en el que se escribirá el resultado.
+ */
+void calcularMaximosYMinimos(int **matrizR, int **matrizG, int **matrizB, char *rutaSalida) {
+    array<int, 3> maximos = maximo(matrizR, matrizG, matrizB);
+    array<int, 3> minimos = minimo(matrizR, matrizG, matrizB);
+    ofstream outputFile(rutaSalida);
+    outputFile << maximos[0] << " " << minimos[0] << " "
+               << maximos[1] << " " << minimos[1] << " "
+               << maximos[2] << " " << minimos[2];
+}
+
+double **escalaGrises(int **rojo, int **verde, int **azul) {
+
+
+    double **grises = new double *[ALTURA];
+    for (int k = 0; k < ALTURA; ++k) {
+        grises[k] = new double[ANCHURA];
+    }
+
+
+    for (int i = 0; i < ALTURA; i++) {
+        for (int j = 0; j < ANCHURA; j++) {
+            grises[i][j] = rojo[i][j] * 0.3 + verde[i][j] * 0.59 + azul[i][j] * 0.11;
+        }
+    }
+    return grises;
+}
+
+void histograma(double **escalagrises, int tramos) {
+
+    int result[tramos];
+    for (int k = 0; k < tramos; ++k) {
+        result[k] = 0;
+    }
+    double valores_tramo = 256 / tramos;
+    int contador = 0;
+
+    for (int i = 0; i < ALTURA; i++) {
+        for (int j = 0; j < ANCHURA; j++) {
+            while (contador < tramos) {
+                if (escalagrises[i][j] >= contador * valores_tramo &&
+                    escalagrises[i][j] < (contador + 1) * valores_tramo) {
+                    result[contador] = result[contador] + 1;
+                    contador = 0;
+                    break;
+                } else {
+                    contador++;
+                }
+            }
+        }
+    }
+
+    ofstream outputFile("histogram.txt");
+
+    for (int i = 0; i < tramos; i++) {
+        outputFile << result[i];
+        outputFile << " ";
+    }
+
+}
+
 
 int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
 
@@ -220,8 +358,36 @@ int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
     return 0;
 }
 
-int main() {
-    dimensiones();
-    imagenToString();
-    filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), 5);
+int main(int argv, char **argc) {
+    if (strcmp(argc[1], "-u") == 0) {
+        if (strcmp(argc[3], "-i") == 0) {
+            dimensiones(argc[4]);
+            imagenToString(argc[4]);
+        } else {
+            cerr << "Es necesario indicar la ruta de la imagen con el parámetro -i." << endl;
+            exit(-1);
+        }
+        if (strcmp(argc[5], "-o") != 0) {
+            cerr << "Es necesario indicar la ruta de la imagen con el parámetro -i." << endl;
+            exit(-1);
+        }
+        if (strcmp(argc[2], "0") == 0) {
+            double **resultado = escalaGrises(stringToMatrizR(), stringToMatrizG(), stringToMatrizB());
+            histograma(resultado, 25);
+        }
+        if (strcmp(argc[2], "1") == 0) {
+            calcularMaximosYMinimos(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), argc[6]);
+        }
+        if (strcmp(argc[2], "2") == 0) {
+        }
+        if (strcmp(argc[2], "3") == 0) {
+        }
+        if (strcmp(argc[2], "4") == 0) {
+            filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), 5);
+        }
+    } else {
+        cerr << "Es necesario indicar las acciones con el parámetro -u." << endl;
+        exit(-1);
+    }
+    return 0;
 }
