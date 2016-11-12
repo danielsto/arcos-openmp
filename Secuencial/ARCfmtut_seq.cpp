@@ -241,6 +241,14 @@ void calcularMaximosYMinimos(int **matrizR, int **matrizG, int **matrizB, char *
                << maximos[2] << " " << minimos[2];
 }
 
+/**
+ * Construye una matriz con los valores de los píxeles de la imagen transformados a escala de
+ * grises necesaria por parámetro para la función histograma()
+ * @param rojo
+ * @param verde
+ * @param azul
+ * @return
+ */
 double **escalaGrises(int **rojo, int **verde, int **azul) {
 
 
@@ -258,6 +266,12 @@ double **escalaGrises(int **rojo, int **verde, int **azul) {
     return grises;
 }
 
+/**
+ * Se realiza un histograma de la imagen leída (en escala de grises) según el nùmero de tramos
+ * indicado por parámetros. El resultado se guarda en un fichero de texto plano.
+ * @param escalagrises Matriz con los valores de los pixeles de la imagen en escala de grises
+ * @param tramos Número de tramos deseados en los que se divide el histograma
+ */
 void histograma(double **escalagrises, int tramos) {
 
     int result[tramos];
@@ -290,10 +304,11 @@ void histograma(double **escalagrises, int tramos) {
     }
 
 }
+
 /**
- * Aplica un filtro blanco y negro a las regiones que quedan fuera del circulo de radio indicado
- * por parámetro y con centro en el centro de la imagen. Las regiones dentro del círculo quedan
- * igual.
+ * Aplica un filtro blanco y negro a las regiones de la imagen que quedan fuera del circulo de
+ * radio indicado por parámetro y con centro en el centro de la imagen. Las regiones dentro del
+ * círculo quedan igual.
  * @param matrizR
  * @param matrizG
  * @param matrizB
@@ -340,8 +355,10 @@ int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
         }
     }
 
-    /*Formateo del contenido del fichero de salida para hacer
-     *coincidir con el formato del fichero de entrada*/
+    /*
+     * Formateo del contenido del fichero de salida para hacer
+     *coincidir con el formato del fichero de entrada
+     * */
 
     unsigned long l = 0;
     unsigned long k = 0;
