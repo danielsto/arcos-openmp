@@ -6,6 +6,9 @@
 #include <iomanip>
 #include <cstring>
 #include <omp.h>
+#include <sys/fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -18,50 +21,34 @@ string stringBlue;
 string stringTotal;
 
 /**
- * Método que lee el archivo de imagen y extrae los datos de altura y anchura de los 8 primeros bytes.
- * El método comprueba si el archivo se abre correctamente, mostrando un mensaje de error si no lo hace.
- * Previa lectura de los bytes, se eliminan los espacios para facilitar la operación de extracción.
- * Durante la lectura de los bytes, se convierten los valores de notación hexadecimal a decimal,
- * guardándose estos valores en variables globales.
+ * Método que extrae los datos de altura y anchura de los 8 primeros bytes del fichero.
+ * Se eliminan los espacios del string para facilitar la operación de extracción y posteriormente se
+ * convierten los valores de notación hexadecimal a decimal, guardándose estos valores en variables globales.
  *
- * @param rutaEntrada Indica la ruta del archivo de entrada a leer.
+ * @param primeraLinea String con los primeros 16 caracteres del documento
  */
-void dimensiones(char *rutaEntrada) {
-    string primeraLinea;
-    ifstream archivo(rutaEntrada);
+void dimensiones(string primeraLinea) {
+    stringstream stringAltura;
+    stringstream stringAnchura;
 
-    if (archivo.is_open()) {
-        stringstream stringAltura;
-        stringstream stringAnchura;
+    primeraLinea.erase(remove(primeraLinea.begin(), primeraLinea.end(), ' '), primeraLinea.end());
 
-        getline(archivo, primeraLinea);
+    stringAltura << hex << primeraLinea.substr(6, 2) + primeraLinea.substr(4, 2) + primeraLinea.substr(2, 2) +
+                           primeraLinea.substr(0, 2);
+    stringAltura >> ALTURA;
 
-        primeraLinea.erase(remove(primeraLinea.begin(), primeraLinea.end(), ' '), primeraLinea.end());
-
-        stringAltura << hex << primeraLinea.substr(6, 2) + primeraLinea.substr(4, 2) + primeraLinea.substr(2, 2) +
-                               primeraLinea.substr(0, 2);
-        stringAltura >> ALTURA;
-
-        stringAnchura << hex << primeraLinea.substr(14, 2) + primeraLinea.substr(12, 2) + primeraLinea.substr(10, 2) +
-                                primeraLinea.substr(8, 2);
-        stringAnchura >> ANCHURA;
-
-        archivo.close();
-
-    } else {
-        cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
-        exit(-1);
-    }
-
+    stringAnchura << hex << primeraLinea.substr(14, 2) + primeraLinea.substr(12, 2) + primeraLinea.substr(10, 2) +
+                            primeraLinea.substr(8, 2);
+    stringAnchura >> ANCHURA;
 }
 
 /**
  * Método que lee el archivo de imagen y extrae tres strings que se corresponden a los datos de las
  * tres matrices de colores RGB que contiene el archivo.
  * El método comprueba si el archivo se abre correctamente, mostrando un mensaje de error si no lo hace.
- * El contenido del archivo se inserta en un string, que posteriormente será dividido en tres partes:
- * una para cada matriz de colores. Se eliminan los retornos de carro y los espacios para facilitar la
- * lectura del contenido del string.
+ * El contenido del archivo se inserta en un string, que posteriormente será dividido en cuatro partes:
+ * una para cada matriz de colores y otra para las dimensiones de la imagen. Se eliminan los retornos de
+ * carro y los espacios para facilitar la lectura del contenido del string.
  * Los strings resultantes de cada matriz serán guardados como variables globales.
  *
  * @param rutaEntrada Indica la ruta del archivo de entrada a leer.
@@ -82,6 +69,7 @@ void imagenToString(char *rutaEntrada) {
         stringImagenCompleta.erase(remove(stringImagenCompleta.begin(), stringImagenCompleta.end(), ' '),
                                    stringImagenCompleta.end());
 
+        dimensiones(stringImagenCompleta.substr(0, 16));
         stringRed = stringImagenCompleta.substr(16, ALTURA * ANCHURA * 2);
         stringGreen = stringImagenCompleta.substr(16 + (ALTURA * ANCHURA * 2), ALTURA * ANCHURA * 2);
         stringBlue = stringImagenCompleta.substr(16 + (ALTURA * ANCHURA * 2 * 2), ALTURA * ANCHURA * 2);
@@ -379,7 +367,7 @@ int main(int argv, char **argc) {
             continue;
         }
     }
-    dimensiones(rutaEntrada);
+
     imagenToString(rutaEntrada);
 
     switch (ejecucion) {
