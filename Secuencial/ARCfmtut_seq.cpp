@@ -288,6 +288,9 @@ void filtroBN(pixel **matriz, int radio, char *rutaSalida) {
         for (int j = 0; j < ANCHURA; ++j) {
             stringstream rs; // red stream
             rs << hex << matriz[i][j].r;
+            if(matriz[i][j].r>=0 && matriz[i][j].r<16){
+                stringTotal.append("0");
+            }
             stringTotal.append(rs.str());
         }
     }
@@ -295,6 +298,9 @@ void filtroBN(pixel **matriz, int radio, char *rutaSalida) {
         for (int j = 0; j < ANCHURA; ++j) {
             stringstream gs; // green stream
             gs << hex << matriz[i][j].g;
+            if(matriz[i][j].g>=0 && matriz[i][j].g<16){
+                stringTotal.append("0");
+            }
             stringTotal.append(gs.str());
         }
     }
@@ -302,6 +308,9 @@ void filtroBN(pixel **matriz, int radio, char *rutaSalida) {
         for (int j = 0; j < ANCHURA; ++j) {
             stringstream bs; //blue stream
             bs << hex << matriz[i][j].b;
+            if(matriz[i][j].b>=0 && matriz[i][j].b<16){
+                stringTotal.append("0");
+            }
             stringTotal.append(bs.str());
         }
     }
