@@ -17,6 +17,13 @@ string stringGreen;
 string stringBlue;
 string stringTotal;
 
+struct pixel{
+    int r;
+    int g;
+    int b;
+};
+
+
 /**
  * Método que lee el archivo de imagen y extrae los datos de altura y anchura de los 8 primeros bytes.
  * El método comprueba si el archivo se abre correctamente, mostrando un mensaje de error si no lo hace.
@@ -82,6 +89,7 @@ void imagenToString(char *rutaEntrada) {
         stringImagenCompleta.erase(remove(stringImagenCompleta.begin(), stringImagenCompleta.end(), ' '),
                                    stringImagenCompleta.end());
 
+        stringTotal = stringImagenCompleta.substr(0, 16);
         stringRed = stringImagenCompleta.substr(16, ALTURA * ANCHURA * 2);
         stringGreen = stringImagenCompleta.substr(16 + (ALTURA * ANCHURA * 2), ALTURA * ANCHURA * 2);
         stringBlue = stringImagenCompleta.substr(16 + (ALTURA * ANCHURA * 2 * 2), ALTURA * ANCHURA * 2);
@@ -91,86 +99,59 @@ void imagenToString(char *rutaEntrada) {
     }
 }
 
-int **stringToMatrizR() {
-    int **matrizRoja = new int *[ALTURA];
+
+/**
+ * Se obtiene una matriz compuesta por estructuras tipo pixel
+ * @param
+ */
+
+pixel **llenarMatriz(){
+
+    pixel **pixels = new pixel *[ALTURA];
     for (int i = 0; i < ALTURA; ++i) {
-        matrizRoja[i] = new int[ANCHURA];
+        pixels[i] = new pixel[ANCHURA];
     }
 
     int columna = 0;
     int filas = 0;
-    int decimal = 0;
+    int rojo;
+    int verde;
+    int azul;
 
-    int length = stringRed.length();
 
-    for (int i = 0; i < length; i = i + 2) {
+    int length= stringGreen.length(); // Se coge unicamente la longitud del string verde porque es igual a lo de los demas
+
+    for(int i=0; i< length; i = i + 2){
+
         if (columna == ANCHURA) {
             columna = 0;
             filas++;
         }
+
         stringstream ss;
+        stringstream ss1;
+        stringstream ss2;
         ss << hex << stringRed.substr(i, 2);
-        ss >> decimal;
-        matrizRoja[filas][columna] = decimal;
+        ss >> rojo;
+
+        ss1 << hex << stringGreen.substr(i, 2);
+        ss1 >> verde;
+
+        ss2 << hex << stringBlue.substr(i, 2);
+        ss2 >> azul;
+
+        pixels[filas][columna].r= rojo;
+        pixels[filas][columna].g= verde;
+        pixels[filas][columna].b= azul;
+
         columna++;
+
     }
 
-
-    return matrizRoja;
-}
-
-int **stringToMatrizG() {
-    int **matrizVerde = new int *[ALTURA];
-    for (int i = 0; i < ALTURA; ++i) {
-        matrizVerde[i] = new int[ANCHURA];
-    }
-
-    int columna = 0;
-    int filas = 0;
-    int decimal = 0;
-
-    int length = stringGreen.length();
-
-    for (int i = 0; i < length; i = i + 2) {
-        if (columna == ANCHURA) {
-            columna = 0;
-            filas++;
-        }
-        stringstream ss;
-        ss << hex << stringGreen.substr(i, 2);
-        ss >> decimal;
-        matrizVerde[filas][columna] = decimal;
-        columna++;
-    }
-    return matrizVerde;
+    return pixels;
 }
 
 
-int **stringToMatrizB() {
-    int **matrizAzul = new int *[ALTURA];
-    for (int i = 0; i < ALTURA; ++i) {
-        matrizAzul[i] = new int[ANCHURA];
-    }
-
-    int columna = 0;
-    int filas = 0;
-    int decimal = 0;
-
-    int length = stringBlue.length();
-
-    for (int i = 0; i < length; i = i + 2) {
-        if (columna == ANCHURA) {
-            columna = 0;
-            filas++;
-        }
-        stringstream ss;
-        ss << hex << stringBlue.substr(i, 2);
-        ss >> decimal;
-        matrizAzul[filas][columna] = decimal;
-        columna++;
-    }
-    return matrizAzul;
-}
 
 /**
  * Escribe en un archivo los valores máximos y mínimos de todas las matrices de colores, en el
@@ -182,27 +163,28 @@ int **stringToMatrizB() {
  * @param matrizB
  * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
-void calcularMaximosYMinimos(int **matrizR, int **matrizG, int **matrizB, char *rutaSalida) {
+
+void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
-            if (matrizR[i][j] > maximosYMinimos[0]) {
-                maximosYMinimos[0] = matrizR[i][j];
+            if (matriz[i][j].r > maximosYMinimos[0]) {
+                maximosYMinimos[0] = matriz[i][j].r;
             }
-            if (matrizG[i][j] > maximosYMinimos[1]) {
-                maximosYMinimos[1] = matrizG[i][j];
+            if (matriz[i][j].g > maximosYMinimos[1]) {
+                maximosYMinimos[1] = matriz[i][j].g;
             }
-            if (matrizB[i][j] > maximosYMinimos[2]) {
-                maximosYMinimos[2] = matrizB[i][j];
+            if (matriz[i][j].b > maximosYMinimos[2]) {
+                maximosYMinimos[2] = matriz[i][j].b;
             }
-            if (matrizR[i][j] < maximosYMinimos[3]) {
-                maximosYMinimos[3] = matrizR[i][j];
+            if (matriz[i][j].r < maximosYMinimos[3]) {
+                maximosYMinimos[3] = matriz[i][j].r;
             }
-            if (matrizG[i][j] < maximosYMinimos[4]) {
-                maximosYMinimos[4] = matrizG[i][j];
+            if (matriz[i][j].g < maximosYMinimos[4]) {
+                maximosYMinimos[4] = matriz[i][j].g;
             }
-            if (matrizB[i][j] < maximosYMinimos[5]) {
-                maximosYMinimos[5] = matrizB[i][j];
+            if (matriz[i][j].b < maximosYMinimos[5]) {
+                maximosYMinimos[5] = matriz[i][j].b;
             }
         }
     }
@@ -220,7 +202,7 @@ void calcularMaximosYMinimos(int **matrizR, int **matrizG, int **matrizB, char *
  * @param azul
  * @return
  */
-double **escalaGrises(int **rojo, int **verde, int **azul) {
+double **escalaGrises(pixel **matriz) {
 
 
     double **grises = new double *[ALTURA];
@@ -231,7 +213,7 @@ double **escalaGrises(int **rojo, int **verde, int **azul) {
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
-            grises[i][j] = rojo[i][j] * 0.3 + verde[i][j] * 0.59 + azul[i][j] * 0.11;
+            grises[i][j] = matriz[i][j].r * 0.3 + matriz[i][j].g * 0.59 + matriz[i][j].b * 0.11;
         }
     }
     return grises;
@@ -243,7 +225,7 @@ double **escalaGrises(int **rojo, int **verde, int **azul) {
  * @param escalagrises Matriz con los valores de los pixeles de la imagen en escala de grises
  * @param tramos Número de tramos deseados en los que se divide el histograma
  */
-void histograma(double **escalagrises, int tramos) {
+void histograma(double **escalagrises, int tramos, char *rutaSalida) {
 
     int result[tramos];
     for (int k = 0; k < tramos; ++k) {
@@ -267,7 +249,7 @@ void histograma(double **escalagrises, int tramos) {
         }
     }
 
-    ofstream outputFile("histogram.txt");
+    ofstream outputFile(rutaSalida);
 
     for (int i = 0; i < tramos; i++) {
         outputFile << result[i];
@@ -285,7 +267,7 @@ void histograma(double **escalagrises, int tramos) {
  * @param matrizB
  * @param radio Radio del círculo dentro del cual no se aplicará el
  * */
-int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
+void filtroBN(pixel **matriz, int radio, char *rutaSalida) {
 
     int centroX = ANCHURA / 2;
     int centroY = ALTURA / 2;
@@ -294,34 +276,34 @@ int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
         for (int j = 0; j < ALTURA; ++j) {
             float suma = pow(i - centroY, 2) + pow(j - centroX, 2);
             if (suma > pow(radio, 2)) {
-                matrizR[i][j] = matrizR[i][j] * 0.3;
-                matrizG[i][j] = matrizG[i][j] * 0.59;
-                matrizB[i][j] = matrizB[i][j] * 0.11;
+                matriz[i][j].r = matriz[i][j].r * 0.3;
+                matriz[i][j].g = matriz[i][j].g * 0.59;
+                matriz[i][j].b = matriz[i][j].b * 0.11;
             }
         }
 
     }
 
-    ofstream outputFile("circle_out.txt");
+    ofstream outputFile(rutaSalida);
 
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
             stringstream rs; // red stream
-            rs << hex << matrizR[i][j];
+            rs << hex << matriz[i][j].r;
             stringTotal.append(rs.str());
         }
     }
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
             stringstream gs; // green stream
-            gs << hex << matrizG[i][j];
+            gs << hex << matriz[i][j].g;
             stringTotal.append(gs.str());
         }
     }
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
             stringstream bs; //blue stream
-            bs << hex << matrizB[i][j];
+            bs << hex << matriz[i][j].b;
             stringTotal.append(bs.str());
         }
     }
@@ -348,7 +330,6 @@ int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
         k++;
     }
     outputFile << stringTotal;
-    return 0;
 }
 
 int main(int argv, char **argc) {
@@ -382,14 +363,16 @@ int main(int argv, char **argc) {
     dimensiones(rutaEntrada);
     imagenToString(rutaEntrada);
 
+
+
     switch (ejecucion) {
         case 0: {
-            double **resultado = escalaGrises(stringToMatrizR(), stringToMatrizG(), stringToMatrizB());
-            histograma(resultado, atoi(parametroExtra));
+            double **resultado = escalaGrises(llenarMatriz());
+            histograma(resultado, atoi(parametroExtra), rutaSalida);
             break;
         }
         case 1: {
-            calcularMaximosYMinimos(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), rutaSalida);
+            calcularMaximosYMinimos(llenarMatriz(), rutaSalida);
             break;
         }
         case 2: {
@@ -399,7 +382,8 @@ int main(int argv, char **argc) {
             break;
         }
         case 4: {
-            filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), atoi(parametroExtra));
+            filtroBN(llenarMatriz(), atoi(parametroExtra), rutaSalida);
+
             break;
         }
         default:
