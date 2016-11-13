@@ -17,7 +17,7 @@ string stringGreen;
 string stringBlue;
 string stringTotal;
 
-struct pixel{
+struct pixel {
     int r;
     int g;
     int b;
@@ -101,56 +101,54 @@ void imagenToString(char *rutaEntrada) {
 
 
 /**
- * Se obtiene una matriz compuesta por estructuras tipo pixel
- * @param
+ * Método que devuelve una matriz de estructuras tipo pixel en el que cada posición contiene
+ * tres valores para los tres colores RGB de la imagen.
+ * El método utiliza las variables globales de los string extraídos del archivo y convierte
+ * sus valores a notación hexadecimal, para posteriormente guardar el valor en el color que
+ * corresponda al píxel de la matriz.
  */
-
-pixel **llenarMatriz(){
-
-    pixel **pixels = new pixel *[ALTURA];
+pixel **generarMatrizPixeles() {
+    pixel **matrizPixeles = new pixel *[ALTURA];
     for (int i = 0; i < ALTURA; ++i) {
-        pixels[i] = new pixel[ANCHURA];
+        matrizPixeles[i] = new pixel[ANCHURA];
     }
 
     int columna = 0;
-    int filas = 0;
-    int rojo;
-    int verde;
-    int azul;
+    int fila = 0;
+    int rojo = 0;
+    int verde = 0;
+    int azul = 0;
 
+    // Se coge únicamente la longitud del string verde porque es igual a lo de los demás
+    long length = stringGreen.length();
 
-    int length= stringGreen.length(); // Se coge unicamente la longitud del string verde porque es igual a lo de los demas
-
-    for(int i=0; i< length; i = i + 2){
-
+    for (int i = 0; i < length; i = i + 2) {
         if (columna == ANCHURA) {
             columna = 0;
-            filas++;
+            fila++;
         }
 
-        stringstream ss;
-        stringstream ss1;
-        stringstream ss2;
-        ss << hex << stringRed.substr(i, 2);
-        ss >> rojo;
+        stringstream streamRojo;
+        stringstream streamVerde;
+        stringstream streamAzul;
+        streamRojo << hex << stringRed.substr(i, 2);
+        streamRojo >> rojo;
 
-        ss1 << hex << stringGreen.substr(i, 2);
-        ss1 >> verde;
+        streamVerde << hex << stringGreen.substr(i, 2);
+        streamVerde >> verde;
 
-        ss2 << hex << stringBlue.substr(i, 2);
-        ss2 >> azul;
+        streamAzul << hex << stringBlue.substr(i, 2);
+        streamAzul >> azul;
 
-        pixels[filas][columna].r= rojo;
-        pixels[filas][columna].g= verde;
-        pixels[filas][columna].b= azul;
+        matrizPixeles[fila][columna].r = rojo;
+        matrizPixeles[fila][columna].g = verde;
+        matrizPixeles[fila][columna].b = azul;
 
         columna++;
-
     }
 
-    return pixels;
+    return matrizPixeles;
 }
-
 
 
 /**
@@ -364,15 +362,14 @@ int main(int argv, char **argc) {
     imagenToString(rutaEntrada);
 
 
-
     switch (ejecucion) {
         case 0: {
-            double **resultado = escalaGrises(llenarMatriz());
+            double **resultado = escalaGrises(generarMatrizPixeles());
             histograma(resultado, atoi(parametroExtra), rutaSalida);
             break;
         }
         case 1: {
-            calcularMaximosYMinimos(llenarMatriz(), rutaSalida);
+            calcularMaximosYMinimos(generarMatrizPixeles(), rutaSalida);
             break;
         }
         case 2: {
@@ -382,7 +379,7 @@ int main(int argv, char **argc) {
             break;
         }
         case 4: {
-            filtroBN(llenarMatriz(), atoi(parametroExtra), rutaSalida);
+            filtroBN(generarMatrizPixeles(), atoi(parametroExtra), rutaSalida);
 
             break;
         }
