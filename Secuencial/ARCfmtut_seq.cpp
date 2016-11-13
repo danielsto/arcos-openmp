@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <cstring>
@@ -362,15 +363,15 @@ int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
     unsigned long l = 0;
     unsigned long k = 0;
     for (unsigned long i = 0; i < stringTotal.length(); ++i) {
-        if(l == 4){
+        if (l == 4) {
             stringTotal.insert(i, 1, ' '); //pone un espacio cada cuatro caracteres
             l = 0;
             i++;
         }
         l++;
-        if(k == 32){
+        if (k == 32) {
             stringTotal.insert(i, 1, '\n'); //pone un salto de linea cada 32 caracteres
-            k=0;
+            k = 0;
             i++;
         }
         k++;
@@ -380,35 +381,58 @@ int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
 }
 
 int main(int argv, char **argc) {
-    if (strcmp(argc[1], "-u") == 0) {
-        if (strcmp(argc[3], "-i") == 0) {
-            dimensiones(argc[4]);
-            imagenToString(argc[4]);
-        } else {
-            cerr << "Es necesario indicar la ruta de la imagen con el parámetro -i." << endl;
-            exit(-1);
+    char *rutaEntrada = NULL;
+    char *rutaSalida = NULL;
+    char *parametroExtra = NULL;
+    int ejecucion = 0;
+    for (int i = 1; i < argv; ++i) {
+        if (strcmp(argc[i], "-u") == 0) {
+            ejecucion = atoi(argc[i + 1]);
+            i++;
+            continue;
         }
-        if (strcmp(argc[5], "-o") != 0) {
-            cerr << "Es necesario indicar la ruta de la imagen con el parámetro -i." << endl;
-            exit(-1);
+        if (strcmp(argc[i], "-i") == 0) {
+            rutaEntrada = argc[i + 1];
+            i++;
+            continue;
         }
-        if (strcmp(argc[2], "0") == 0) {
+        if (strcmp(argc[i], "-o") == 0) {
+            rutaSalida = argc[i + 1];
+            i++;
+            continue;
+        }
+        if (strcmp(argc[i], "-t") == 0 || strcmp(argc[i], "-r") == 0 || strcmp(argc[i], "-a") == 0 ||
+            strcmp(argc[i], "-f") == 0) {
+            parametroExtra = argc[i + 1];
+            i++;
+            continue;
+        }
+    }
+    dimensiones(rutaEntrada);
+    imagenToString(rutaEntrada);
+
+    switch (ejecucion) {
+        case 0: {
             double **resultado = escalaGrises(stringToMatrizR(), stringToMatrizG(), stringToMatrizB());
-            histograma(resultado, 25);
+            histograma(resultado, atoi(parametroExtra));
+            break;
         }
-        if (strcmp(argc[2], "1") == 0) {
-            calcularMaximosYMinimos(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), argc[6]);
+        case 1: {
+            calcularMaximosYMinimos(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), rutaSalida);
+            break;
         }
-        if (strcmp(argc[2], "2") == 0) {
+        case 2: {
+            break;
         }
-        if (strcmp(argc[2], "3") == 0) {
+        case 3: {
+            break;
         }
-        if (strcmp(argc[2], "4") == 0) {
-            filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), 5);
+        case 4: {
+            filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), atoi(parametroExtra));
+            break;
         }
-    } else {
-        cerr << "Es necesario indicar las acciones con el parámetro -u." << endl;
-        exit(-1);
+        default:
+            cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4.";
     }
     return 0;
 }
