@@ -231,7 +231,7 @@ double **escalaGrises(int **rojo, int **verde, int **azul) {
  * @param escalagrises Matriz con los valores de los pixeles de la imagen en escala de grises
  * @param tramos Número de tramos deseados en los que se divide el histograma
  */
-void histograma(double **escalagrises, int tramos) {
+void histograma(double **escalagrises, char *rutaSalida, int tramos) {
 
     int result[tramos];
     for (int k = 0; k < tramos; ++k) {
@@ -255,7 +255,7 @@ void histograma(double **escalagrises, int tramos) {
         }
     }
 
-    ofstream outputFile("histogram.txt");
+    ofstream outputFile(rutaSalida);
 
     for (int i = 0; i < tramos; i++) {
         outputFile << result[i];
@@ -273,7 +273,7 @@ void histograma(double **escalagrises, int tramos) {
  * @param matrizB
  * @param radio Radio del círculo dentro del cual no se aplicará el
  * */
-int filtroBN(int **matrizR, int **matrizG, int **matrizB, int radio) {
+int filtroBN(int **matrizR, int **matrizG, int **matrizB, double radio) {
 
     int centroX = ANCHURA / 2;
     int centroY = ALTURA / 2;
@@ -343,12 +343,17 @@ int main(int argv, char **argc) {
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
-    int ejecucion = 0;
+    int ejecucion = -1;
     for (int i = 1; i < argv; ++i) {
         if (strcmp(argc[i], "-u") == 0) {
-            ejecucion = atoi(argc[i + 1]);
-            i++;
-            continue;
+            try {
+                ejecucion = stoi(argc[i + 1]);
+                i++;
+                continue;
+            } catch (const std::invalid_argument) {
+                cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4." << endl;
+                exit(-1);
+            }
         }
         if (strcmp(argc[i], "-i") == 0) {
             rutaEntrada = argc[i + 1];
@@ -368,12 +373,37 @@ int main(int argv, char **argc) {
         }
     }
 
+    if (rutaEntrada == NULL) {
+        cerr << "No se ha especificado el fichero de entrada. Inserte el parámetro -i seguido de la ruta." << endl;
+        exit(-1);
+    }
+    if (rutaSalida == NULL) {
+        cerr << "No se ha especificado el fichero de salida. Inserte el parámetro -o seguido de la ruta." << endl;
+        exit(-1);
+    }
+    if (ejecucion == -1) {
+        cerr << "No se ha especificado la acción a realizar. Inserte el parámetro -u seguido de la acción (0-4)."
+             << endl;
+        exit(-1);
+    }
+
     imagenToString(rutaEntrada);
 
     switch (ejecucion) {
         case 0: {
+            if (parametroExtra == NULL) {
+                cerr
+                        << "No se ha especificado el número de tramos. Inserte el parámetro -t seguido del número de tramos."
+                        << endl;
+                exit(-1);
+            }
             double **resultado = escalaGrises(stringToMatrizR(), stringToMatrizG(), stringToMatrizB());
-            histograma(resultado, atoi(parametroExtra));
+            try {
+                histograma(resultado, rutaSalida, stoi(parametroExtra));
+            } catch (const std::invalid_argument) {
+                cerr << "El parámetro indicado por -t tiene que ser un número entero." << endl;
+                exit(-1);
+            }
             break;
         }
         case 1: {
@@ -387,11 +417,23 @@ int main(int argv, char **argc) {
             break;
         }
         case 4: {
-            filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), atoi(parametroExtra));
+            if (parametroExtra == NULL) {
+                cerr
+                        << "No se ha especificado el radio del filtro B/N. Inserte el parámetro -r seguido del radio del filtro."
+                        << endl;
+                exit(-1);
+            }
+            try {
+                filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), stod(parametroExtra));
+            } catch (const std::invalid_argument) {
+                cerr << "El parámetro indicado por -r tiene que ser un número decimal." << endl;
+                exit(-1);
+            }
             break;
         }
         default:
             cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4.";
+            exit(-1);
     }
     return 0;
 }
