@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iomanip>
 #include <cstring>
+#include <omp.h>
 
 using namespace std;
 
@@ -172,73 +173,43 @@ int **stringToMatrizB() {
 }
 
 /**
- * Función que devuelve en un array el valor máximo de cada matriz de color pasada por
- * parámetros.
- * @param matrizR
- * @param matrizG
- * @param matrizB
- * @return Array de tres posiciones con los valores máximos de cada matriz
- */
-array<int, 3> maximo(int **matrizR, int **matrizG, int **matrizB) {
-    array<int, 3> numerosMaximos = {0, 0, 0};
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            if (matrizR[i][j] > numerosMaximos[0]) {
-                numerosMaximos[0] = matrizR[i][j];
-            }
-            if (matrizG[i][j] > numerosMaximos[1]) {
-                numerosMaximos[1] = matrizG[i][j];
-            }
-            if (matrizB[i][j] > numerosMaximos[2]) {
-                numerosMaximos[2] = matrizB[i][j];
-            }
-        }
-    }
-
-    return numerosMaximos;
-}
-
-/**
- * Función que devuelve en un array el valor mínimo de cada matriz de color pasada por
- * parámetros.
- * @param matrizR
- * @param matrizG
- * @param matrizB
- * @return Array de tres posiciones con los valores mínimos de cada matriz
- */
-array<int, 3> minimo(int **matrizR, int **matrizG, int **matrizB) {
-    array<int, 3> numerosMinimos = {0, 0, 0};
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            if (matrizR[i][j] < numerosMinimos[0]) {
-                numerosMinimos[0] = matrizR[i][j];
-            }
-            if (matrizG[i][j] < numerosMinimos[1]) {
-                numerosMinimos[1] = matrizG[i][j];
-            }
-            if (matrizB[i][j] < numerosMinimos[2]) {
-                numerosMinimos[2] = matrizB[i][j];
-            }
-        }
-    }
-    return numerosMinimos;
-}
-
-/**
  * Escribe en un archivo los valores máximos y mínimos de todas las matrices de colores, en el
- * orden de Rojo, Verde y Azul
+ * orden de Rojo, Verde y Azul.
+ * Se crea un array de tamaño 6 que contiene en sus primeras 3 posiciones los valores máximos de
+ * las tres matrices y en sus siguientes 3 posiciones los valores mínimos.
  * @param matrizR
  * @param matrizG
  * @param matrizB
  * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
 void calcularMaximosYMinimos(int **matrizR, int **matrizG, int **matrizB, char *rutaSalida) {
-    array<int, 3> maximos = maximo(matrizR, matrizG, matrizB);
-    array<int, 3> minimos = minimo(matrizR, matrizG, matrizB);
+    array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            if (matrizR[i][j] > maximosYMinimos[0]) {
+                maximosYMinimos[0] = matrizR[i][j];
+            }
+            if (matrizG[i][j] > maximosYMinimos[1]) {
+                maximosYMinimos[1] = matrizG[i][j];
+            }
+            if (matrizB[i][j] > maximosYMinimos[2]) {
+                maximosYMinimos[2] = matrizB[i][j];
+            }
+            if (matrizR[i][j] < maximosYMinimos[3]) {
+                maximosYMinimos[3] = matrizR[i][j];
+            }
+            if (matrizG[i][j] < maximosYMinimos[4]) {
+                maximosYMinimos[4] = matrizG[i][j];
+            }
+            if (matrizB[i][j] < maximosYMinimos[5]) {
+                maximosYMinimos[5] = matrizB[i][j];
+            }
+        }
+    }
     ofstream outputFile(rutaSalida);
-    outputFile << maximos[0] << " " << minimos[0] << " "
-               << maximos[1] << " " << minimos[1] << " "
-               << maximos[2] << " " << minimos[2];
+    outputFile << maximosYMinimos[0] << " " << maximosYMinimos[3] << " "
+               << maximosYMinimos[1] << " " << maximosYMinimos[4] << " "
+               << maximosYMinimos[2] << " " << maximosYMinimos[5];
 }
 
 /**
