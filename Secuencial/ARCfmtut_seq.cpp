@@ -25,44 +25,6 @@ struct pixel {
 
 
 /**
- * Método que lee el archivo de imagen y extrae los datos de altura y anchura de los 8 primeros bytes.
- * El método comprueba si el archivo se abre correctamente, mostrando un mensaje de error si no lo hace.
- * Previa lectura de los bytes, se eliminan los espacios para facilitar la operación de extracción.
- * Durante la lectura de los bytes, se convierten los valores de notación hexadecimal a decimal,
- * guardándose estos valores en variables globales.
- *
- * @param rutaEntrada Indica la ruta del archivo de entrada a leer.
- */
-void dimensiones(char *rutaEntrada) {
-    string primeraLinea;
-    ifstream archivo(rutaEntrada);
-
-    if (archivo.is_open()) {
-        stringstream stringAltura;
-        stringstream stringAnchura;
-
-        getline(archivo, primeraLinea);
-
-        primeraLinea.erase(remove(primeraLinea.begin(), primeraLinea.end(), ' '), primeraLinea.end());
-
-        stringAltura << hex << primeraLinea.substr(6, 2) + primeraLinea.substr(4, 2) + primeraLinea.substr(2, 2) +
-                               primeraLinea.substr(0, 2);
-        stringAltura >> ALTURA;
-
-        stringAnchura << hex << primeraLinea.substr(14, 2) + primeraLinea.substr(12, 2) + primeraLinea.substr(10, 2) +
-                                primeraLinea.substr(8, 2);
-        stringAnchura >> ANCHURA;
-
-        archivo.close();
-
-    } else {
-        cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
-        exit(-1);
-    }
-
-}
-
-/**
  * Método que lee el archivo de imagen y extrae tres strings que se corresponden a los datos de las
  * tres matrices de colores RGB que contiene el archivo.
  * El método comprueba si el archivo se abre correctamente, mostrando un mensaje de error si no lo hace.
@@ -73,80 +35,38 @@ void dimensiones(char *rutaEntrada) {
  *
  * @param rutaEntrada Indica la ruta del archivo de entrada a leer.
  */
-void imagenToString(char *rutaEntrada) {
-    string lineaLeida;
-    string stringImagenCompleta;
-
-    ifstream archivo(rutaEntrada);
-
+pixel **generarMatrizPixeles(char *rutaEntrada) {
+    ifstream archivo(rutaEntrada, ios::binary);
+    pixel **matrizPixeles;
     if (archivo.is_open()) {
-        while (getline(archivo, lineaLeida)) {
-            lineaLeida.erase(remove(lineaLeida.begin(), lineaLeida.end(), '\r'), lineaLeida.end());
-            stringImagenCompleta += lineaLeida;
+        archivo.seekg(0, ios::beg);
+        archivo.read((char *) &ALTURA, 4);
+        archivo.seekg(4, ios::beg);
+        archivo.read((char *) &ANCHURA, 4);
+        matrizPixeles = new pixel *[ALTURA];
+        for (int i = 0; i < ALTURA; ++i) {
+            matrizPixeles[i] = new pixel[ANCHURA];
+        }
+
+        int posicion = 8;
+        for (int i = 0; i < ALTURA; ++i) {
+            for (int j = 0; j < ANCHURA; ++j) {
+                if (!archivo.eof()) {
+                    archivo.seekg(posicion, ios::beg);
+                    archivo.read((char *) &matrizPixeles[i][j].r, 1); // byte rojo
+                    archivo.seekg(posicion + ALTURA * ANCHURA, ios::beg);
+                    archivo.read((char *) &matrizPixeles[i][j].g, 1); // byte rojo
+                    archivo.seekg(posicion + ALTURA * ANCHURA * 2, ios::beg);
+                    archivo.read((char *) &matrizPixeles[i][j].b, 1); // byte rojo
+                    ++posicion;
+                }
+            }
         }
         archivo.close();
-
-        stringImagenCompleta.erase(remove(stringImagenCompleta.begin(), stringImagenCompleta.end(), ' '),
-                                   stringImagenCompleta.end());
-
-        stringTotal = stringImagenCompleta.substr(0, 16);
-        stringRed = stringImagenCompleta.substr(16, ALTURA * ANCHURA * 2);
-        stringGreen = stringImagenCompleta.substr(16 + (ALTURA * ANCHURA * 2), ALTURA * ANCHURA * 2);
-        stringBlue = stringImagenCompleta.substr(16 + (ALTURA * ANCHURA * 2 * 2), ALTURA * ANCHURA * 2);
     } else {
         cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
         exit(-1);
     }
-}
-
-
-/**
- * Método que devuelve una matriz de estructuras tipo pixel en el que cada posición contiene
- * tres valores para los tres colores RGB de la imagen.
- * El método utiliza las variables globales de los string extraídos del archivo y convierte
- * sus valores a notación hexadecimal, para posteriormente guardar el valor en el color que
- * corresponda al píxel de la matriz.
- */
-pixel **generarMatrizPixeles() {
-    pixel **matrizPixeles = new pixel *[ALTURA];
-    for (int i = 0; i < ALTURA; ++i) {
-        matrizPixeles[i] = new pixel[ANCHURA];
-    }
-
-    int columna = 0;
-    int fila = 0;
-    int rojo = 0;
-    int verde = 0;
-    int azul = 0;
-
-    // Se coge únicamente la longitud del string verde porque es igual a lo de los demás
-    long length = stringGreen.length();
-
-    for (int i = 0; i < length; i = i + 2) {
-        if (columna == ANCHURA) {
-            columna = 0;
-            fila++;
-        }
-
-        stringstream streamRojo;
-        stringstream streamVerde;
-        stringstream streamAzul;
-        streamRojo << hex << stringRed.substr(i, 2);
-        streamRojo >> rojo;
-
-        streamVerde << hex << stringGreen.substr(i, 2);
-        streamVerde >> verde;
-
-        streamAzul << hex << stringBlue.substr(i, 2);
-        streamAzul >> azul;
-
-        matrizPixeles[fila][columna].r = rojo;
-        matrizPixeles[fila][columna].g = verde;
-        matrizPixeles[fila][columna].b = azul;
-
-        columna++;
-    }
-
     return matrizPixeles;
 }
 
@@ -256,6 +176,34 @@ void histograma(double **escalagrises, int tramos, char *rutaSalida) {
 
 }
 
+void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
+    ofstream archivo(rutaSalida, ios::binary);
+    if (archivo.is_open()) {
+        archivo.seekp(0, ios::beg);
+        archivo.write((char *) &ALTURA, 4);
+        archivo.seekp(4, ios::beg);
+        archivo.write((char *) &ANCHURA, 4);
+
+        int posicion = 8;
+        for (int i = 0; i < ALTURA; ++i) {
+            for (int j = 0; j < ANCHURA; ++j) {
+                if (!archivo.eof()) {
+                    archivo.seekp(posicion, ios::beg);
+                    archivo.write((char *) &matrizPixeles[i][j].r, 1); // byte rojo
+                    archivo.seekp(posicion + ALTURA * ANCHURA, ios::beg);
+                    archivo.write((char *) &matrizPixeles[i][j].g, 1); // byte verde
+                    archivo.seekp(posicion + ALTURA * ANCHURA * 2, ios::beg);
+                    archivo.write((char *) &matrizPixeles[i][j].b, 1); // byte azul
+                    ++posicion;
+                }
+            }
+        }
+    } else {
+        cerr << "El fichero de salida no se ha creado correctamente." << endl;
+        exit(-1);
+    }
+}
+
 /**
  * Aplica un filtro blanco y negro a las regiones de la imagen que quedan fuera del circulo de
  * radio indicado por parámetro y con centro en el centro de la imagen. Las regiones dentro del
@@ -263,7 +211,7 @@ void histograma(double **escalagrises, int tramos, char *rutaSalida) {
  * @param matrizR
  * @param matrizG
  * @param matrizB
- * @param radio Radio del círculo dentro del cual no se aplicará el
+ * @param radio Radio del círculo dentro del cual no se aplicará el filtro
  * */
 void filtroBN(pixel **matriz, int radio, char *rutaSalida) {
 
@@ -282,61 +230,7 @@ void filtroBN(pixel **matriz, int radio, char *rutaSalida) {
 
     }
 
-    ofstream outputFile(rutaSalida);
-
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            stringstream rs; // red stream
-            rs << hex << matriz[i][j].r;
-            if(matriz[i][j].r>=0 && matriz[i][j].r<16){
-                stringTotal.append("0");
-            }
-            stringTotal.append(rs.str());
-        }
-    }
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            stringstream gs; // green stream
-            gs << hex << matriz[i][j].g;
-            if(matriz[i][j].g>=0 && matriz[i][j].g<16){
-                stringTotal.append("0");
-            }
-            stringTotal.append(gs.str());
-        }
-    }
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            stringstream bs; //blue stream
-            bs << hex << matriz[i][j].b;
-            if(matriz[i][j].b>=0 && matriz[i][j].b<16){
-                stringTotal.append("0");
-            }
-            stringTotal.append(bs.str());
-        }
-    }
-
-    /*
-     * Formateo del contenido del fichero de salida para hacer
-     *coincidir con el formato del fichero de entrada
-     * */
-
-    unsigned long l = 0;
-    unsigned long k = 0;
-    for (unsigned long i = 0; i < stringTotal.length(); ++i) {
-        if (l == 4) {
-            stringTotal.insert(i, 1, ' '); //pone un espacio cada cuatro caracteres
-            l = 0;
-            i++;
-        }
-        l++;
-        if (k == 32) {
-            stringTotal.insert(i, 1, '\n'); //pone un salto de linea cada 32 caracteres
-            k = 0;
-            i++;
-        }
-        k++;
-    }
-    outputFile << stringTotal;
+    escribirSalida(matriz, rutaSalida);
 }
 
 int main(int argv, char **argc) {
@@ -367,18 +261,15 @@ int main(int argv, char **argc) {
             continue;
         }
     }
-    dimensiones(rutaEntrada);
-    imagenToString(rutaEntrada);
-
 
     switch (ejecucion) {
         case 0: {
-            double **resultado = escalaGrises(generarMatrizPixeles());
+            double **resultado = escalaGrises(generarMatrizPixeles(rutaEntrada));
             histograma(resultado, atoi(parametroExtra), rutaSalida);
             break;
         }
         case 1: {
-            calcularMaximosYMinimos(generarMatrizPixeles(), rutaSalida);
+            calcularMaximosYMinimos(generarMatrizPixeles(rutaEntrada), rutaSalida);
             break;
         }
         case 2: {
@@ -388,7 +279,7 @@ int main(int argv, char **argc) {
             break;
         }
         case 4: {
-            filtroBN(generarMatrizPixeles(), atoi(parametroExtra), rutaSalida);
+            filtroBN(generarMatrizPixeles(rutaEntrada), atoi(parametroExtra), rutaSalida);
 
             break;
         }
