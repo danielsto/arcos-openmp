@@ -13,11 +13,6 @@ using namespace std;
 int ALTURA;
 int ANCHURA;
 
-string stringRed;
-string stringGreen;
-string stringBlue;
-string stringTotal;
-
 struct pixel {
     int r;
     int g;
@@ -236,9 +231,6 @@ void filtroBN(pixel **matriz, int radio, char *rutaSalida) {
 }
 
 void mascara (pixel **imagen, pixel **mascara, char *rutaSalida){
-
-
-
     for(int i=0; i<ALTURA; ++i) {
         for(int j=0; j<ANCHURA; ++j) {
             imagen[i][j].r = imagen[i][j].r * mascara[i][j].r;
@@ -246,61 +238,7 @@ void mascara (pixel **imagen, pixel **mascara, char *rutaSalida){
             imagen[i][j].b = imagen[i][j].b * mascara[i][j].b;
         }
     }
-
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            stringstream rs; // red stream
-            if(imagen[i][j].r>=0 && imagen[i][j].r<16){
-                stringTotal.append("0");
-            }
-            rs << hex << imagen[i][j].r;
-            stringTotal.append(rs.str());
-        }
-    }
-
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            stringstream gs; // green stream
-            if(imagen[i][j].g>=0 && imagen[i][j].g<16){
-                stringTotal.append("0");
-            }
-            gs << hex << imagen[i][j].g;
-            stringTotal.append(gs.str());
-        }
-    }
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            stringstream bs; //blue stream
-            if(imagen[i][j].b>=0 && imagen[i][j].b<16){
-                stringTotal.append("0");
-            }
-            bs << hex << imagen[i][j].b;
-            stringTotal.append(bs.str());
-        }
-    }
-
-    ofstream ficheroSalida;
-    ficheroSalida.open (rutaSalida);
-
-    unsigned long l = 0;
-    unsigned long k = 0;
-    for (unsigned long i = 0; i < stringTotal.length(); ++i) {
-        if (l == 4) {
-            stringTotal.insert(i, 1, ' '); //pone un espacio cada cuatro caracteres
-            l = 0;
-            i++;
-        }
-        l++;
-        if (k == 32) {
-            stringTotal.insert(i, 1, '\n'); //pone un salto de linea cada 32 caracteres
-            k = 0;
-            i++;
-        }
-        k++;
-    }
-    ficheroSalida << stringTotal;
-    ficheroSalida.close();
-
+    escribirSalida(imagen, rutaSalida);
 }
 
 void rotacion(pixel **imagen, double grados, char *rutaSalida){
