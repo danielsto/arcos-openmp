@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <cstring>
 #include <omp.h>
+#include <chrono>
 
 using namespace std;
 
@@ -355,6 +356,7 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida){
 }
 
 int main(int argv, char **argc) {
+    auto start = std::chrono::high_resolution_clock::now();
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
@@ -408,5 +410,8 @@ int main(int argv, char **argc) {
         default:
             cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4.";
     }
+    auto elapsed = std::chrono::high_resolution_clock::now() - start;
+    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    cout << "Tiempo transcurrido: "<< microseconds << " microsegundos\n";
     return 0;
 }
