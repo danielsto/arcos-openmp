@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <cstring>
 #include <omp.h>
+#include <vector>
+#include <chrono>
 
 using namespace std;
 
@@ -43,19 +45,21 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
             matrizPixeles[i] = new pixel[ANCHURA];
         }
 
-        int posicion = 8;
-        for (int i = 0; i < ALTURA; ++i) {
-            for (int j = 0; j < ANCHURA; ++j) {
-                if (!archivo.eof()) {
-                    archivo.seekg(posicion, ios::beg);
-                    archivo.read((char *) &matrizPixeles[i][j].r, 1); // byte rojo
-                    archivo.seekg(posicion + ALTURA * ANCHURA, ios::beg);
-                    archivo.read((char *) &matrizPixeles[i][j].g, 1); // byte rojo
-                    archivo.seekg(posicion + ALTURA * ANCHURA * 2, ios::beg);
-                    archivo.read((char *) &matrizPixeles[i][j].b, 1); // byte rojo
-                    ++posicion;
-                }
-            }
+        vector<char> reds((ANCHURA * ALTURA));
+        vector<char> greens((ANCHURA * ALTURA));
+        vector<char> blues((ANCHURA * ALTURA));
+
+        archivo.read(reds.data(), ANCHURA * ALTURA);
+        archivo.read(greens.data(), ANCHURA * ALTURA);
+        archivo.read(blues.data(), ANCHURA * ALTURA);
+
+        std::vector<pixel> pixels((ANCHURA * ALTURA));
+
+        size_t index;
+        for(index = 0; index < (unsigned(ANCHURA * ALTURA)); index++) {
+            pixels[index].r = reds[index];
+            pixels[index].g = greens[index];
+            pixels[index].b = blues[index];
         }
         archivo.close();
     } else {
@@ -176,20 +180,23 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
         archivo.seekp(4, ios::beg);
         archivo.write((char *) &ANCHURA, 4);
 
-        int posicion = 8;
-        for (int i = 0; i < ALTURA; ++i) {
-            for (int j = 0; j < ANCHURA; ++j) {
-                if (!archivo.eof()) {
-                    archivo.seekp(posicion, ios::beg);
-                    archivo.write((char *) &matrizPixeles[i][j].r, 1); // byte rojo
-                    archivo.seekp(posicion + ALTURA * ANCHURA, ios::beg);
-                    archivo.write((char *) &matrizPixeles[i][j].g, 1); // byte verde
-                    archivo.seekp(posicion + ALTURA * ANCHURA * 2, ios::beg);
-                    archivo.write((char *) &matrizPixeles[i][j].b, 1); // byte azul
-                    ++posicion;
-                }
-            }
+        vector<char> reds((unsigned long) (ANCHURA * ALTURA));
+        vector<char> greens((unsigned long) (ANCHURA * ALTURA));
+        vector<char> blues((unsigned long) (ANCHURA * ALTURA));
+
+        archivo.write(reds.data(), ANCHURA * ALTURA);
+        archivo.write(greens.data(), ANCHURA * ALTURA);
+        archivo.write(blues.data(), ANCHURA * ALTURA);
+
+        std::vector<pixel> pixels((unsigned long) (ANCHURA * ALTURA));
+
+        size_t index;
+        for(index = 0; index < (unsigned(ANCHURA * ALTURA)); index++) {
+            pixels[index].r = reds[index];
+            pixels[index].g = greens[index];
+            pixels[index].b = blues[index];
         }
+
         archivo.close();
     } else {
         cerr << "El fichero de salida no se ha creado correctamente." << endl;
@@ -285,6 +292,7 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
 }
 
 int main(int argv, char **argc) {
+    auto start = std::chrono::high_resolution_clock::now();
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
@@ -362,6 +370,9 @@ int main(int argv, char **argc) {
         }
         case 4: {
             filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
+            auto elapsed = std::chrono::high_resolution_clock::now() - start;
+            long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+            cout << "Tiempo transcurrido: "<< microseconds << " microsegundos\n";
             if (parametroExtra == NULL) {
                 cerr
                         << "No se ha especificado el radio del filtro B/N. Inserte el parámetro -r seguido del radio del filtro."
