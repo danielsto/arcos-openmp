@@ -335,9 +335,9 @@ int main(int argv, char **argc) {
     switch (ejecucion) {
         case 0: {
             if (parametroExtra == NULL) {
-                cerr
-                        << "No se ha especificado el número de tramos. Inserte el parámetro -t seguido del número de tramos."
-                        << endl;
+                cerr << "No se ha especificado el número de tramos. "
+                        "Inserte el parámetro -t seguido del número de tramos."
+                     << endl;
                 exit(-1);
             }
             double **resultado = escalaGrises(generarMatrizPixeles(rutaEntrada));
@@ -354,20 +354,38 @@ int main(int argv, char **argc) {
             break;
         }
         case 2: {
+            if (parametroExtra == NULL) {
+                cerr << "No se ha especificado la dirección del fichero de máscara. "
+                        "Inserte el parámetro -f seguido del ángulo de la rotación de la imagen."
+                     << endl;
+                exit(-1);
+            }
             mascara(generarMatrizPixeles(rutaEntrada), generarMatrizPixeles(parametroExtra), rutaSalida);
             break;
         }
         case 3: {
+            if (parametroExtra == NULL) {
+                cerr << "No se ha especificado el ángulo de rotación. "
+                        "Inserte el parámetro -a seguido del ángulo de la rotación de la imagen."
+                     << endl;
+                exit(-1);
+            }
+            try {
+                rotacion(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
+            } catch (const std::invalid_argument) {
+                cerr << "El parámetro indicado por -a tiene que ser un número decimal." << endl;
+                exit(-1);
+            }
             break;
         }
         case 4: {
-            filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             if (parametroExtra == NULL) {
-                cerr
-                        << "No se ha especificado el radio del filtro B/N. Inserte el parámetro -r seguido del radio del filtro."
-                        << endl;
+                cerr << "No se ha especificado el radio del filtro B/N. "
+                        "Inserte el parámetro -r seguido del radio del filtro."
+                     << endl;
                 exit(-1);
             }
+            filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             try {
                 filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             } catch (const std::invalid_argument) {
