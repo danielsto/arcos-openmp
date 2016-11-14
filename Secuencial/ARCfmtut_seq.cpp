@@ -1,5 +1,4 @@
 #include <iostream>
-#include <sstream>
 #include <fstream>
 #include <algorithm>
 #include <cmath>
@@ -11,11 +10,6 @@ using namespace std;
 
 int ALTURA;
 int ANCHURA;
-
-string stringRed;
-string stringGreen;
-string stringBlue;
-string stringTotal;
 
 struct pixel {
     int r;
@@ -81,7 +75,6 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
  * @param matrizB
  * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
-
 void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
     for (int i = 0; i < ALTURA; ++i) {
@@ -121,8 +114,6 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
  * @return
  */
 double **escalaGrises(pixel **matriz) {
-
-
     double **grises = new double *[ALTURA];
     for (int k = 0; k < ALTURA; ++k) {
         grises[k] = new double[ANCHURA];
@@ -144,19 +135,18 @@ double **escalaGrises(pixel **matriz) {
  * @param tramos Número de tramos deseados en los que se divide el histograma
  */
 void histograma(double **escalagrises, int tramos, char *rutaSalida) {
-
     int result[tramos];
-    for (int k = 0; k < tramos; ++k) {
-        result[k] = 0;
+    for (int i = 0; i < tramos; ++i) {
+        result[i] = 0;
     }
-    double valores_tramo = 256 / tramos;
+    double valoresTramo = 256 / tramos;
     int contador = 0;
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
             while (contador < tramos) {
-                if (escalagrises[i][j] >= contador * valores_tramo &&
-                    escalagrises[i][j] < (contador + 1) * valores_tramo) {
+                if (escalagrises[i][j] >= contador * valoresTramo &&
+                    escalagrises[i][j] < (contador + 1) * valoresTramo) {
                     result[contador] = result[contador] + 1;
                     contador = 0;
                     break;
@@ -169,7 +159,7 @@ void histograma(double **escalagrises, int tramos, char *rutaSalida) {
 
     ofstream outputFile(rutaSalida);
 
-    for (int i = 0; i < tramos; i++) {
+    for (int i = 0; i < tramos; ++i) {
         outputFile << result[i];
         outputFile << " ";
     }
@@ -198,6 +188,7 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
                 }
             }
         }
+        archivo.close();
     } else {
         cerr << "El fichero de salida no se ha creado correctamente." << endl;
         exit(-1);
@@ -213,8 +204,7 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
  * @param matrizB
  * @param radio Radio del círculo dentro del cual no se aplicará el filtro
  * */
-void filtroBN(pixel **matriz, int radio, char *rutaSalida) {
-
+void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
     int centroX = ANCHURA / 2;
     int centroY = ALTURA / 2;
 
@@ -222,21 +212,17 @@ void filtroBN(pixel **matriz, int radio, char *rutaSalida) {
         for (int j = 0; j < ALTURA; ++j) {
             float suma = pow(i - centroY, 2) + pow(j - centroX, 2);
             if (suma > pow(radio, 2)) {
-                matriz[i][j].r = matriz[i][j].r * 0.3;
-                matriz[i][j].g = matriz[i][j].g * 0.59;
-                matriz[i][j].b = matriz[i][j].b * 0.11;
+                matriz[i][j].r = (int) (matriz[i][j].r * 0.3);
+                matriz[i][j].g = (int) (matriz[i][j].g * 0.59);
+                matriz[i][j].b = (int) (matriz[i][j].b * 0.11);
             }
         }
 
     }
-
     escribirSalida(matriz, rutaSalida);
 }
 
 void mascara (pixel **imagen, pixel **mascara, char *rutaSalida){
-
-
-
     for(int i=0; i<ALTURA; ++i) {
         for(int j=0; j<ANCHURA; ++j) {
             imagen[i][j].r = imagen[i][j].r * mascara[i][j].r;
@@ -244,61 +230,7 @@ void mascara (pixel **imagen, pixel **mascara, char *rutaSalida){
             imagen[i][j].b = imagen[i][j].b * mascara[i][j].b;
         }
     }
-
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            stringstream rs; // red stream
-            if(imagen[i][j].r>=0 && imagen[i][j].r<16){
-                stringTotal.append("0");
-            }
-            rs << hex << imagen[i][j].r;
-            stringTotal.append(rs.str());
-        }
-    }
-
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            stringstream gs; // green stream
-            if(imagen[i][j].g>=0 && imagen[i][j].g<16){
-                stringTotal.append("0");
-            }
-            gs << hex << imagen[i][j].g;
-            stringTotal.append(gs.str());
-        }
-    }
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            stringstream bs; //blue stream
-            if(imagen[i][j].b>=0 && imagen[i][j].b<16){
-                stringTotal.append("0");
-            }
-            bs << hex << imagen[i][j].b;
-            stringTotal.append(bs.str());
-        }
-    }
-
-    ofstream ficheroSalida;
-    ficheroSalida.open (rutaSalida);
-
-    unsigned long l = 0;
-    unsigned long k = 0;
-    for (unsigned long i = 0; i < stringTotal.length(); ++i) {
-        if (l == 4) {
-            stringTotal.insert(i, 1, ' '); //pone un espacio cada cuatro caracteres
-            l = 0;
-            i++;
-        }
-        l++;
-        if (k == 32) {
-            stringTotal.insert(i, 1, '\n'); //pone un salto de linea cada 32 caracteres
-            k = 0;
-            i++;
-        }
-        k++;
-    }
-    ficheroSalida << stringTotal;
-    ficheroSalida.close();
-
+    escribirSalida(imagen, rutaSalida);
 }
 
 int main(int argv, char **argc) {
@@ -341,14 +273,14 @@ int main(int argv, char **argc) {
             break;
         }
         case 2: {
+            mascara(generarMatrizPixeles(rutaEntrada), generarMatrizPixeles(parametroExtra), rutaSalida);
             break;
         }
         case 3: {
             break;
         }
         case 4: {
-            filtroBN(generarMatrizPixeles(rutaEntrada), atoi(parametroExtra), rutaSalida);
-
+            filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             break;
         }
         default:
