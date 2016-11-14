@@ -224,9 +224,9 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
     escribirSalida(matriz, rutaSalida);
 }
 
-void mascara (pixel **imagen, pixel **mascara, char *rutaSalida){
-    for(int i=0; i<ALTURA; ++i) {
-        for(int j=0; j<ANCHURA; ++j) {
+void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
             imagen[i][j].r = imagen[i][j].r * mascara[i][j].r;
             imagen[i][j].g = imagen[i][j].g * mascara[i][j].g;
             imagen[i][j].b = imagen[i][j].b * mascara[i][j].b;
@@ -235,50 +235,49 @@ void mascara (pixel **imagen, pixel **mascara, char *rutaSalida){
     escribirSalida(imagen, rutaSalida);
 }
 
-void rotacion(pixel **imagen, double grados, char *rutaSalida){
-    double yMax= ALTURA-1;
-    double xMax= ANCHURA-1;
-    int filaCentro= ceil(yMax/2);
-    int colCentro= ceil(xMax/2);
+void rotacion(pixel **imagen, double grados, char *rutaSalida) {
+    double yMax = ALTURA - 1;
+    double xMax = ANCHURA - 1;
+    int filaCentro = ceil(yMax / 2);
+    int colCentro = ceil(xMax / 2);
     int coorX;
     int coorY;
     int coorXrotada;
     int coorYrotada;
 
-    double radianes=grados*3.14159/180;
+    double radianes = grados * 3.14159 / 180;
 
-    pixel **rotada= new pixel*[ALTURA];
-    for(int i=0; i<ALTURA; i++) {
+    pixel **rotada = new pixel *[ALTURA];
+    for (int i = 0; i < ALTURA; i++) {
         rotada[i] = new pixel[ANCHURA];
     }
 
-    for(int i=0; i<ALTURA; ++i){
-        for(int j=0; j<ANCHURA; ++j) {
-            rotada[i][j].r= 0;
-            rotada[i][j].g= 0;
-            rotada[i][j].b= 0;
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            rotada[i][j].r = 0;
+            rotada[i][j].g = 0;
+            rotada[i][j].b = 0;
         }
     }
 
-    for(int i=0; i<ALTURA; ++i){
-        for(int j=0; j<ANCHURA; ++j) {
-            coorX= j - colCentro;
-            coorY= i - filaCentro;
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            coorX = j - colCentro;
+            coorY = i - filaCentro;
 
-            coorXrotada = round(cos(radianes)*coorX - sin(radianes)*coorY);
-            coorYrotada = round(sin(radianes)*coorX + cos(radianes)*coorY);
+            coorXrotada = round(cos(radianes) * coorX - sin(radianes) * coorY);
+            coorYrotada = round(sin(radianes) * coorX + cos(radianes) * coorY);
 
-            coorX= coorX +colCentro;
-            coorY= coorY +filaCentro;
-            coorXrotada= coorXrotada+colCentro;
-            coorYrotada= coorYrotada+filaCentro;
+            coorX = coorX + colCentro;
+            coorY = coorY + filaCentro;
+            coorXrotada = coorXrotada + colCentro;
+            coorYrotada = coorYrotada + filaCentro;
 
-            if(coorXrotada<0 || coorXrotada> ANCHURA-1 || coorYrotada<0 || coorYrotada> ALTURA-1){
-            }
-            else{
-                rotada[coorYrotada][coorXrotada].r= imagen[coorY][coorX].r;
-                rotada[coorYrotada][coorXrotada].g= imagen[coorY][coorX].g;
-                rotada[coorYrotada][coorXrotada].b= imagen[coorY][coorX].b;
+            if (coorXrotada < 0 || coorXrotada > ANCHURA - 1 || coorYrotada < 0 || coorYrotada > ALTURA - 1) {
+            } else {
+                rotada[coorYrotada][coorXrotada].r = imagen[coorY][coorX].r;
+                rotada[coorYrotada][coorXrotada].g = imagen[coorY][coorX].g;
+                rotada[coorYrotada][coorXrotada].b = imagen[coorY][coorX].b;
             }
         }
     }
@@ -333,8 +332,6 @@ int main(int argv, char **argc) {
         exit(-1);
     }
 
-    imagenToString(rutaEntrada);
-
     switch (ejecucion) {
         case 0: {
             if (parametroExtra == NULL) {
@@ -345,7 +342,7 @@ int main(int argv, char **argc) {
             }
             double **resultado = escalaGrises(generarMatrizPixeles(rutaEntrada));
             try {
-                histograma(resultado, atoi(parametroExtra), rutaSalida);
+                histograma(resultado, rutaSalida, atoi(parametroExtra));
             } catch (const std::invalid_argument) {
                 cerr << "El parámetro indicado por -t tiene que ser un número entero." << endl;
                 exit(-1);
@@ -372,7 +369,7 @@ int main(int argv, char **argc) {
                 exit(-1);
             }
             try {
-                filtroBN(stringToMatrizR(), stringToMatrizG(), stringToMatrizB(), stod(parametroExtra));
+                filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             } catch (const std::invalid_argument) {
                 cerr << "El parámetro indicado por -r tiene que ser un número decimal." << endl;
                 exit(-1);
