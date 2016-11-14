@@ -233,6 +233,58 @@ void mascara (pixel **imagen, pixel **mascara, char *rutaSalida){
     escribirSalida(imagen, rutaSalida);
 }
 
+void rotacion(pixel **imagen, double grados, char *rutaSalida){
+    double yMax= ALTURA-1;
+    double xMax= ANCHURA-1;
+    int filaCentro= ceil(yMax/2);
+    int colCentro= ceil(xMax/2);
+    int coorX;
+    int coorY;
+    int coorXrotada;
+    int coorYrotada;
+
+    double radianes=grados*3.14159/180;
+
+    pixel **rotada= new pixel*[ALTURA];
+    for(int i=0; i<ALTURA; i++) {
+        rotada[i] = new pixel[ANCHURA];
+    }
+
+    for(int i=0; i<ALTURA; ++i){
+        for(int j=0; j<ANCHURA; ++j) {
+            rotada[i][j].r= 0;
+            rotada[i][j].g= 0;
+            rotada[i][j].b= 0;
+        }
+    }
+
+    for(int i=0; i<ALTURA; ++i){
+        for(int j=0; j<ANCHURA; ++j) {
+            coorX= j - colCentro;
+            coorY= i - filaCentro;
+
+            coorXrotada = round(cos(radianes)*coorX - sin(radianes)*coorY);
+            coorYrotada = round(sin(radianes)*coorX + cos(radianes)*coorY);
+
+            coorX= coorX +colCentro;
+            coorY= coorY +filaCentro;
+            coorXrotada= coorXrotada+colCentro;
+            coorYrotada= coorYrotada+filaCentro;
+
+            if(coorXrotada<0 || coorXrotada> ANCHURA-1 || coorYrotada<0 || coorYrotada> ALTURA-1){
+            }
+            else{
+                rotada[coorYrotada][coorXrotada].r= imagen[coorY][coorX].r;
+                rotada[coorYrotada][coorXrotada].g= imagen[coorY][coorX].g;
+                rotada[coorYrotada][coorXrotada].b= imagen[coorY][coorX].b;
+            }
+        }
+    }
+
+    escribirSalida(rotada, rutaSalida);
+
+}
+
 int main(int argv, char **argc) {
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
