@@ -316,6 +316,7 @@ int main(int argv, char **argc) {
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
+    char *parametroLetra = NULL;
     int ejecucion = -1;
     for (int i = 1; i < argv; ++i) {
         if (strcmp(argc[i], "-u") == 0) {
@@ -340,6 +341,7 @@ int main(int argv, char **argc) {
         }
         if (strcmp(argc[i], "-t") == 0 || strcmp(argc[i], "-r") == 0 || strcmp(argc[i], "-a") == 0 ||
             strcmp(argc[i], "-f") == 0) {
+            parametroLetra = argc[i];
             parametroExtra = argc[i + 1];
             i++;
             continue;
@@ -362,7 +364,7 @@ int main(int argv, char **argc) {
 
     switch (ejecucion) {
         case 0: {
-            if (parametroExtra == NULL || strcpy(parametroExtra, "-t")) {
+            if (parametroExtra == NULL || strcmp(parametroLetra, "-t") != 0) {
                 cerr << "No se ha especificado el número de tramos. "
                         "Inserte el parámetro -t seguido del número de tramos."
                      << endl;
@@ -382,7 +384,7 @@ int main(int argv, char **argc) {
             break;
         }
         case 2: {
-            if (parametroExtra == NULL || strcpy(parametroExtra, "-f")) {
+            if (parametroExtra == NULL || strcmp(parametroLetra, "-f") != 0) {
                 cerr << "No se ha especificado la dirección del fichero de máscara. "
                         "Inserte el parámetro -f seguido del ángulo de la rotación de la imagen."
                      << endl;
@@ -392,7 +394,7 @@ int main(int argv, char **argc) {
             break;
         }
         case 3: {
-            if (parametroExtra == NULL || strcpy(parametroExtra, "-a")) {
+            if (parametroExtra == NULL || strcmp(parametroLetra, "-a") != 0) {
                 cerr << "No se ha especificado el ángulo de rotación. "
                         "Inserte el parámetro -a seguido del ángulo de la rotación de la imagen."
                      << endl;
@@ -407,7 +409,7 @@ int main(int argv, char **argc) {
             break;
         }
         case 4: {
-            if (parametroExtra == NULL || strcpy(parametroExtra, "-r")) {
+            if (parametroExtra == NULL || strcmp(parametroLetra, "-r") != 0) {
                 cerr << "No se ha especificado el radio del filtro B/N. "
                         "Inserte el parámetro -r seguido del radio del filtro."
                      << endl;
