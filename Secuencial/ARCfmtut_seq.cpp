@@ -38,13 +38,13 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     switch (channel) {
                         case 0:
-                            buffer[i * ANCHURA + j] =  matrizPixeles[i][j].r;
+                            buffer[i * ANCHURA + j] = matrizPixeles[i][j].r;
                             break;
                         case 1:
-                            buffer[i * ANCHURA + j + ALTURA * ANCHURA] =  matrizPixeles[i][j].g;
+                            buffer[i * ANCHURA + j + ALTURA * ANCHURA] = matrizPixeles[i][j].g;
                             break;
                         case 2:
-                            buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] =  matrizPixeles[i][j].b;
+                            buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
                             break;
                     }
 
@@ -362,7 +362,7 @@ int main(int argv, char **argc) {
 
     switch (ejecucion) {
         case 0: {
-            if (parametroExtra == NULL) {
+            if (parametroExtra == NULL || strcpy(parametroExtra, "-t")) {
                 cerr << "No se ha especificado el número de tramos. "
                         "Inserte el parámetro -t seguido del número de tramos."
                      << endl;
@@ -382,7 +382,7 @@ int main(int argv, char **argc) {
             break;
         }
         case 2: {
-            if (parametroExtra == NULL) {
+            if (parametroExtra == NULL || strcpy(parametroExtra, "-f")) {
                 cerr << "No se ha especificado la dirección del fichero de máscara. "
                         "Inserte el parámetro -f seguido del ángulo de la rotación de la imagen."
                      << endl;
@@ -392,7 +392,7 @@ int main(int argv, char **argc) {
             break;
         }
         case 3: {
-            if (parametroExtra == NULL) {
+            if (parametroExtra == NULL || strcpy(parametroExtra, "-a")) {
                 cerr << "No se ha especificado el ángulo de rotación. "
                         "Inserte el parámetro -a seguido del ángulo de la rotación de la imagen."
                      << endl;
@@ -407,13 +407,12 @@ int main(int argv, char **argc) {
             break;
         }
         case 4: {
-            if (parametroExtra == NULL) {
+            if (parametroExtra == NULL || strcpy(parametroExtra, "-r")) {
                 cerr << "No se ha especificado el radio del filtro B/N. "
                         "Inserte el parámetro -r seguido del radio del filtro."
                      << endl;
                 exit(-1);
             }
-            filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             try {
                 filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             } catch (const std::invalid_argument) {
