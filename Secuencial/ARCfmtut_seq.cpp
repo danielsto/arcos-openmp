@@ -84,42 +84,26 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
 
 void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
-    for (int canal = 0; canal < 3; ++canal) {
-        for (int i = 0; i < ALTURA; ++i) {
-            for (int j = 0; j < ANCHURA; ++j) {
-                switch (canal) {
-                    case 0:
-                        if (matriz[i][j].r > maximosYMinimos[0]) {
-                            maximosYMinimos[0] = matriz[i][j].r;
-                            break;
-                        }
-                        if (matriz[i][j].r < maximosYMinimos[3]) {
-                            maximosYMinimos[3] = matriz[i][j].r;
-                            break;
-                        }
-                        break;
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
 
-                    case 1:
-                        if (matriz[i][j].g > maximosYMinimos[1]) {
-                            maximosYMinimos[1] = matriz[i][j].g;
-                            break;
-                        }
-                        if (matriz[i][j].g < maximosYMinimos[4]) {
-                            maximosYMinimos[4] = matriz[i][j].g;
-                            break;
-                        }
-                        break;
-                    case 2:
-                        if (matriz[i][j].b > maximosYMinimos[2]) {
-                            maximosYMinimos[2] = matriz[i][j].b;
-                            break;
-                        }
-                        if (matriz[i][j].b < maximosYMinimos[5]) {
-                            maximosYMinimos[5] = matriz[i][j].b;
-                            break;
-                        }
-                        break;
-                }
+            if (matriz[i][j].r > maximosYMinimos[0]) {
+                maximosYMinimos[0] = matriz[i][j].r;
+            }
+            if (matriz[i][j].g > maximosYMinimos[1]) {
+                maximosYMinimos[1] = matriz[i][j].g;
+            }
+            if (matriz[i][j].b > maximosYMinimos[2]) {
+                maximosYMinimos[2] = matriz[i][j].b;
+            }
+            if (matriz[i][j].r < maximosYMinimos[3]) {
+                maximosYMinimos[3] = matriz[i][j].r;
+            }
+            if (matriz[i][j].g < maximosYMinimos[4]) {
+                maximosYMinimos[4] = matriz[i][j].g;
+            }
+            if (matriz[i][j].b < maximosYMinimos[5]) {
+                maximosYMinimos[5] = matriz[i][j].b;
             }
         }
     }
