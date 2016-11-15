@@ -174,43 +174,22 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
  * @param azul
  * @return
  */
-double **escalaGrises(pixel **matriz) {
-    double **grises = new double *[ALTURA];
-    for (int k = 0; k < ALTURA; ++k) {
-        grises[k] = new double[ANCHURA];
-    }
+void histograma(pixel **matriz, char *rutaSalida, int tramos) {
+    auto start = std::chrono::high_resolution_clock::now();
 
-
-    for (int i = 0; i < ALTURA; i++) {
-        for (int j = 0; j < ANCHURA; j++) {
-            grises[i][j] = matriz[i][j].r * 0.3 + matriz[i][j].g * 0.59 + matriz[i][j].b * 0.11;
-        }
-    }
-    return grises;
-}
-
-/**
- * Se realiza un histograma de la imagen leída (en escala de grises) según el nùmero de tramos
- * indicado por parámetros. El resultado se guarda en un fichero de texto plano.
- * @param escalagrises Matriz con los valores de los pixeles de la imagen en escala de grises
- * @param tramos Número de tramos deseados en los que se divide el histograma
- */
-void histograma(double **escalagrises, char *rutaSalida, int tramos) {
     vector<int> result(tramos);
+    double grises;
+    double valoresTramo= 256 / (double) tramos;
 
-    double valoresTramo = 256 / (double) tramos;
-    int contador = 0;
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
-            while (contador < tramos) {
-                if (escalagrises[i][j] >= contador * valoresTramo &&
-                    escalagrises[i][j] < (contador + 1) * valoresTramo) {
+            grises = matriz[i][j].r * 0.3 + matriz[i][j].g * 0.59 + matriz[i][j].b * 0.11;
+            for(int contador= 0; contador<tramos; contador++){
+                if (grises >= contador * valoresTramo &&
+                    grises < (contador + 1) * valoresTramo) {
                     result[contador] = result[contador] + 1;
-                    contador = 0;
                     break;
-                } else {
-                    contador++;
                 }
             }
         }
@@ -218,12 +197,17 @@ void histograma(double **escalagrises, char *rutaSalida, int tramos) {
 
     ofstream outputFile(rutaSalida);
 
+
     for (int i = 0; i < tramos; ++i) {
         outputFile << result[i];
         if (i != tramos - 1) {
             outputFile << " ";
         }
     }
+
+    auto elapsed = std::chrono::high_resolution_clock::now() - start;
+    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    cout << "Tiempo total transcurrido escalaGrises: " << microseconds << " microsegundos\n";
 
 
 }
@@ -370,9 +354,9 @@ int main(int argv, char **argc) {
                      << endl;
                 exit(-1);
             }
-            double **resultado = escalaGrises(generarMatrizPixeles(rutaEntrada));
+
             try {
-                histograma(resultado, rutaSalida, atoi(parametroExtra));
+                histograma(generarMatrizPixeles(rutaEntrada),rutaSalida, stoi(parametroExtra));
             } catch (const std::invalid_argument) {
                 cerr << "El parámetro indicado por -t tiene que ser un número entero." << endl;
                 exit(-1);
