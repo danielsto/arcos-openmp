@@ -16,11 +16,43 @@ int ALTURA;
 int ANCHURA;
 
 struct pixel {
-    int r;
-    int g;
-    int b;
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
 };
 
+
+void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
+    ofstream archivo(rutaSalida, ios::binary);
+    if (archivo.is_open()) {
+        archivo.write((char *) &ALTURA, 4);
+        archivo.write((char *) &ANCHURA, 4);
+
+
+        for (int channel = 0; channel < 3; channel++) {
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    switch (channel) {
+                        case 0:
+                            archivo.write((char *) &matrizPixeles[i][j].r, 1);
+                            break;
+                        case 1:
+                            archivo.write((char *) &matrizPixeles[i][j].g, 1);
+                            break;
+                        case 2:
+                            archivo.write((char *) &matrizPixeles[i][j].b, 1);
+                            break;
+                    }
+
+                }
+            }
+        }
+        archivo.close();
+    } else {
+        cerr << "El fichero de salida no se ha creado correctamente." << endl;
+        exit(-1);
+    }
+}
 
 /**
  * Método que lee el archivo de imagen de entrada y vierte los primeros dos grupos de
@@ -42,26 +74,33 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
             matrizPixeles[i] = new pixel[ANCHURA];
         }
 
+        int fileSize = (int) archivo.seekg(0, ios::end).tellg();
+
+        char *buffer = new char[fileSize - 8];
+
+        archivo.seekg(8, ios::beg);
+        archivo.read(buffer, fileSize - 8);
+
         for (int channel = 0; channel < 3; channel++) {
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     if (!archivo.eof()) {
                         switch (channel) {
                             case 0:
-                                archivo.read((char *) &matrizPixeles[i][j].r, 1);
+                                matrizPixeles[i][j].r = (unsigned char) buffer[i * ANCHURA + j];
                                 break;
                             case 1:
-                                archivo.read((char *) &matrizPixeles[i][j].g, 1);
+                                matrizPixeles[i][j].g = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA];
                                 break;
                             case 2:
-                                archivo.read((char *) &matrizPixeles[i][j].b, 1);
+                                matrizPixeles[i][j].b = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA * 2];
                                 break;
                         }
-
                     }
                 }
             }
         }
+
         archivo.close();
     } else {
         cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
@@ -171,38 +210,6 @@ void histograma(double **escalagrises, char *rutaSalida, int tramos) {
         outputFile << " ";
     }
 
-}
-
-void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
-    ofstream archivo(rutaSalida, ios::binary);
-    if (archivo.is_open()) {
-        archivo.write((char *) &ALTURA, 4);
-        archivo.write((char *) &ANCHURA, 4);
-
-
-        for (int channel = 0; channel < 3; channel++) {
-            for (int i = 0; i < ALTURA; ++i) {
-                for (int j = 0; j < ANCHURA; ++j) {
-                    switch (channel) {
-                        case 0:
-                            archivo.write((char *) &matrizPixeles[i][j].r, 1);
-                            break;
-                        case 1:
-                            archivo.write((char *) &matrizPixeles[i][j].g, 1);
-                            break;
-                        case 2:
-                            archivo.write((char *) &matrizPixeles[i][j].b, 1);
-                            break;
-                    }
-
-                }
-            }
-        }
-        archivo.close();
-    } else {
-        cerr << "El fichero de salida no se ha creado correctamente." << endl;
-        exit(-1);
-    }
 }
 
 /**
