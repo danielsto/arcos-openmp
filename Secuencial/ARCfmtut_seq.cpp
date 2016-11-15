@@ -230,11 +230,11 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
 
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ALTURA; ++j) {
-            float suma = pow(i - centroY, 2) + pow(j - centroX, 2);
+            double suma = pow(i - centroY, 2) + pow(j - centroX, 2);
             if (suma > pow(radio, 2)) {
-                matriz[i][j].r = (int) (matriz[i][j].r * 0.3);
-                matriz[i][j].g = (int) (matriz[i][j].g * 0.59);
-                matriz[i][j].b = (int) (matriz[i][j].b * 0.11);
+                matriz[i][j].r = (unsigned char) (matriz[i][j].r * 0.3);
+                matriz[i][j].g = (unsigned char) (matriz[i][j].g * 0.59);
+                matriz[i][j].b = (unsigned char) (matriz[i][j].b * 0.11);
             }
         }
 
