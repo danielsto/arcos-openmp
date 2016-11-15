@@ -21,13 +21,10 @@ struct pixel {
 
 
 /**
- * Método que lee el archivo de imagen y extrae tres strings que se corresponden a los datos de las
- * tres matrices de colores RGB que contiene el archivo.
- * El método comprueba si el archivo se abre correctamente, mostrando un mensaje de error si no lo hace.
- * El contenido del archivo se inserta en un string, que posteriormente será dividido en tres partes:
- * una para cada matriz de colores. Se eliminan los retornos de carro y los espacios para facilitar la
- * lectura del contenido del string.
- * Los strings resultantes de cada matriz serán guardados como variables globales.
+ * Método que lee el archivo de imagen de entrada y vierte los primeros dos grupos de
+ * 4 bytes en las variables globales ALTURA y ANCHURA respectivamente. El resto del fichero
+ * se vierte en una matriz de estructuras tipo pixel {r, g, b} en su atributo de canal
+ * correspondiente.
  *
  * @param rutaEntrada Indica la ruta del archivo de entrada a leer.
  */
@@ -35,9 +32,7 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
     ifstream archivo(rutaEntrada, ios::binary);
     pixel **matrizPixeles;
     if (archivo.is_open()) {
-        archivo.seekg(0, ios::beg);
         archivo.read((char *) &ALTURA, 4);
-        archivo.seekg(4, ios::beg);
         archivo.read((char *) &ANCHURA, 4);
 
         matrizPixeles = new pixel *[ALTURA];
@@ -177,9 +172,7 @@ void histograma(double **escalagrises, int tramos, char *rutaSalida) {
 void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
     ofstream archivo(rutaSalida, ios::binary);
     if (archivo.is_open()) {
-        archivo.seekp(0, ios::beg);
         archivo.write((char *) &ALTURA, 4);
-        archivo.seekp(4, ios::beg);
         archivo.write((char *) &ANCHURA, 4);
 
 
