@@ -207,8 +207,11 @@ void histograma(double **escalagrises, char *rutaSalida, int tramos) {
 
     for (int i = 0; i < tramos; ++i) {
         outputFile << result[i];
-        outputFile << " ";
+        if(i!=tramos-1){
+            outputFile << " ";
+        }
     }
+
 
 }
 
@@ -251,16 +254,15 @@ void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
 }
 
 void rotacion(pixel **imagen, double grados, char *rutaSalida) {
-    double yMax = ALTURA - 1;
-    double xMax = ANCHURA - 1;
-    int filaCentro = ceil(yMax / 2);
-    int colCentro = ceil(xMax / 2);
-    int coorX;
-    int coorY;
+    double yMax = ALTURA;
+    double xMax = ANCHURA;
+    double filaCentro = yMax / 2;
+    double colCentro = xMax / 2;
     int coorXrotada;
     int coorYrotada;
 
-    double radianes = grados * 3.14159 / 180;
+
+    double radianes = grados * M_PI / 180;
 
     pixel **rotada = new pixel *[ALTURA];
     for (int i = 0; i < ALTURA; i++) {
@@ -277,26 +279,23 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
 
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
-            coorX = j - colCentro;
-            coorY = i - filaCentro;
 
-            coorXrotada = round(cos(radianes) * coorX - sin(radianes) * coorY);
-            coorYrotada = round(sin(radianes) * coorX + cos(radianes) * coorY);
 
-            coorX = coorX + colCentro;
-            coorY = coorY + filaCentro;
-            coorXrotada = coorXrotada + colCentro;
-            coorYrotada = coorYrotada + filaCentro;
+            coorXrotada = ceil((cos(radianes) * (j - colCentro) - sin(radianes) * (i - filaCentro)) + colCentro);
+            coorYrotada = ceil((sin(radianes) * (j - colCentro) + cos(radianes) * (i - filaCentro)) + filaCentro);
+
 
             if (coorXrotada < 0 || coorXrotada > ANCHURA - 1 || coorYrotada < 0 || coorYrotada > ALTURA - 1) {
             } else {
-                rotada[coorYrotada][coorXrotada].r = imagen[coorY][coorX].r;
-                rotada[coorYrotada][coorXrotada].g = imagen[coorY][coorX].g;
-                rotada[coorYrotada][coorXrotada].b = imagen[coorY][coorX].b;
+                rotada[coorYrotada][coorXrotada].r = imagen[i][j].r;
+                rotada[coorYrotada][coorXrotada].g = imagen[i][j].g;
+                rotada[coorYrotada][coorXrotada].b = imagen[i][j].b;
             }
         }
     }
+
     escribirSalida(rotada, rutaSalida);
+
 }
 
 int main(int argv, char **argc) {
