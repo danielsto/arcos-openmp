@@ -7,6 +7,8 @@
 #include <cstring>
 #include <omp.h>
 #include <chrono>
+#include <vector>
+#include <array>
 
 using namespace std;
 
@@ -138,10 +140,8 @@ double **escalaGrises(pixel **matriz) {
  * @param tramos Número de tramos deseados en los que se divide el histograma
  */
 void histograma(double **escalagrises, int tramos, char *rutaSalida) {
-    int result[tramos];
-    for (int i = 0; i < tramos; ++i) {
-        result[i] = 0;
-    }
+    vector<int> result(tramos);
+
     double valoresTramo = 256 / (double)tramos;
     int contador = 0;
 
