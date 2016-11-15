@@ -17,9 +17,9 @@ int ALTURA;
 int ANCHURA;
 
 char *stringTotal;
-char *stringRoja;
-char *stringVerde;
-char *stringAzul;
+unsigned char *stringRoja;
+unsigned char *stringVerde;
+unsigned char *stringAzul;
 
 
 void escribirSalida(int **matrizRoja, int **matrizVerde, int **matrizAzul, char *rutaSalida) {
@@ -53,9 +53,11 @@ void imagenToString(char *rutaEntrada) {
     if (archivo.is_open()) {
         archivo.read((char *) &ALTURA, 4);
         archivo.read((char *) &ANCHURA, 4);
+        stringRoja = new unsigned char [ALTURA * ANCHURA];
+        stringVerde = new unsigned char [ALTURA * ANCHURA];
+        stringAzul = new unsigned char [ALTURA * ANCHURA];
 
         int fileSize = (int) archivo.seekg(0, ios::end).tellg();
-
         char *buffer = new char[fileSize - 8];
 
         archivo.seekg(8, ios::beg);
@@ -71,6 +73,61 @@ void imagenToString(char *rutaEntrada) {
             exit(-1);
         }
     }
+
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            cout << stringRoja[i*ALTURA + j];
+        }
+    }
+}
+
+int **stringToMatrizR() {
+    int **matrizRoja = new int *[ALTURA];
+    for (int i = 0; i < ALTURA; ++i) {
+        matrizRoja[i] = new int[ANCHURA];
+    }
+
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA ; ++j) {
+            matrizRoja[i][j] = stringRoja[i * ANCHURA + j];
+        }
+    }
+
+    return matrizRoja;
+}
+
+int **stringToMatrizG() {
+    int **matrizVerde = new int *[ALTURA];
+    for (int i = 0; i < ALTURA; ++i) {
+        matrizVerde[i] = new int[ANCHURA];
+    }
+
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA ; ++j) {
+            matrizVerde[i][j] = stringVerde[i * ANCHURA + j];
+        }
+    }
+
+    return matrizVerde;
+}
+
+
+int **stringToMatrizB() {
+    int **matrizAzul = new int *[ALTURA];
+    for (int i = 0; i < ALTURA; ++i) {
+        matrizAzul[i] = new int[ANCHURA];
+    }
+
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA ; ++j) {
+            matrizAzul[i][j] = stringAzul[i * ANCHURA + j];
+        }
+    }
+
+    return matrizAzul;
+
+}
+
 
 
 /**
