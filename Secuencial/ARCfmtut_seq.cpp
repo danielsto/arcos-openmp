@@ -9,6 +9,8 @@
 #include <chrono>
 #include <vector>
 #include <array>
+#include <math.h>
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -25,28 +27,31 @@ struct pixel {
 void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
     ofstream archivo(rutaSalida, ios::binary);
     if (archivo.is_open()) {
+
+        unsigned char *buffer = new unsigned char[ALTURA * ANCHURA * 3];
+
         archivo.write((char *) &ALTURA, 4);
         archivo.write((char *) &ANCHURA, 4);
-
 
         for (int channel = 0; channel < 3; channel++) {
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     switch (channel) {
                         case 0:
-                            archivo.write((char *) &matrizPixeles[i][j].r, 1);
+                            buffer[i * ANCHURA + j] = matrizPixeles[i][j].r;
                             break;
                         case 1:
-                            archivo.write((char *) &matrizPixeles[i][j].g, 1);
+                            buffer[i * ANCHURA + j + ALTURA * ANCHURA] = matrizPixeles[i][j].g;
                             break;
                         case 2:
-                            archivo.write((char *) &matrizPixeles[i][j].b, 1);
+                            buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
                             break;
                     }
 
                 }
             }
         }
+        archivo.write((const char *) buffer, ALTURA * ANCHURA * 3);
         archivo.close();
     } else {
         cerr << "El fichero de salida no se ha creado correctamente." << endl;
@@ -74,7 +79,15 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
             matrizPixeles[i] = new pixel[ANCHURA];
         }
 
-        int fileSize = (int) archivo.seekg(0, ios::end).tellg();
+        struct stat st;
+        stat(rutaEntrada, &st);
+
+
+        int fileSize = (int) st.st_size;
+
+        if (fileSize != ALTURA * ANCHURA * 3 + 8) {
+            cerr << "El formato del fichero no es correcto" << endl;
+        }
 
         char *buffer = new char[fileSize - 8];
 
@@ -207,7 +220,7 @@ void histograma(double **escalagrises, char *rutaSalida, int tramos) {
 
     for (int i = 0; i < tramos; ++i) {
         outputFile << result[i];
-        if(i!=tramos-1){
+        if (i != tramos - 1) {
             outputFile << " ";
         }
     }
@@ -303,6 +316,7 @@ int main(int argv, char **argc) {
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
+    char *parametroLetra = NULL;
     int ejecucion = -1;
     for (int i = 1; i < argv; ++i) {
         if (strcmp(argc[i], "-u") == 0) {
@@ -327,6 +341,7 @@ int main(int argv, char **argc) {
         }
         if (strcmp(argc[i], "-t") == 0 || strcmp(argc[i], "-r") == 0 || strcmp(argc[i], "-a") == 0 ||
             strcmp(argc[i], "-f") == 0) {
+            parametroLetra = argc[i];
             parametroExtra = argc[i + 1];
             i++;
             continue;
@@ -349,7 +364,7 @@ int main(int argv, char **argc) {
 
     switch (ejecucion) {
         case 0: {
-            if (parametroExtra == NULL) {
+            if (parametroExtra == NULL || strcmp(parametroLetra, "-t") != 0) {
                 cerr << "No se ha especificado el número de tramos. "
                         "Inserte el parámetro -t seguido del número de tramos."
                      << endl;
@@ -369,7 +384,7 @@ int main(int argv, char **argc) {
             break;
         }
         case 2: {
-            if (parametroExtra == NULL) {
+            if (parametroExtra == NULL || strcmp(parametroLetra, "-f") != 0) {
                 cerr << "No se ha especificado la dirección del fichero de máscara. "
                         "Inserte el parámetro -f seguido del ángulo de la rotación de la imagen."
                      << endl;
@@ -379,7 +394,7 @@ int main(int argv, char **argc) {
             break;
         }
         case 3: {
-            if (parametroExtra == NULL) {
+            if (parametroExtra == NULL || strcmp(parametroLetra, "-a") != 0) {
                 cerr << "No se ha especificado el ángulo de rotación. "
                         "Inserte el parámetro -a seguido del ángulo de la rotación de la imagen."
                      << endl;
@@ -394,13 +409,12 @@ int main(int argv, char **argc) {
             break;
         }
         case 4: {
-            if (parametroExtra == NULL) {
+            if (parametroExtra == NULL || strcmp(parametroLetra, "-r") != 0) {
                 cerr << "No se ha especificado el radio del filtro B/N. "
                         "Inserte el parámetro -r seguido del radio del filtro."
                      << endl;
                 exit(-1);
             }
-            filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             try {
                 filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             } catch (const std::invalid_argument) {
