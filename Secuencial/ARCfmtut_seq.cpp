@@ -141,7 +141,7 @@ void histograma(double **escalagrises, char *rutaSalida, int tramos) {
     for (int i = 0; i < tramos; ++i) {
         result[i] = 0;
     }
-    double valoresTramo = 256 / tramos;
+    double valoresTramo = 256 / (double) tramos;
     int contador = 0;
 
     for (int i = 0; i < ALTURA; i++) {
