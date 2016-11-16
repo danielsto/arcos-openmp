@@ -127,35 +127,52 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
  * Escribe en un archivo los valores máximos y mínimos de todas las matrices de colores, en el
  * orden de Rojo, Verde y Azul.
  * Se crea un array de tamaño 6 que contiene en sus primeras 3 posiciones los valores máximos de
- * las tres matrices y en sus siguientes 3 posiciones los valores mínimos.
- * @param matrizR
- * @param matrizG
- * @param matrizB
+ * las tres matrices y en sus siguientes 3 posiciones los valores mínimos. Recorre los tres canales
+ * de color RGB, comparando los valores leídos con los anteriores valores máximos y mínimos,
+ * actualizándolos si es necesario.
+ * @param matriz Matriz de píxeles que se corresponde con la imagen a analizar
  * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
 
 void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
+    for (int canal = 0; canal < 3; ++canal) {
+        for (int i = 0; i < ALTURA; ++i) {
+            for (int j = 0; j < ANCHURA; ++j) {
+                switch (canal) {
+                    case 0:
+                        if (matriz[i][j].r > maximosYMinimos[0]) {
+                            maximosYMinimos[0] = matriz[i][j].r;
+                            break;
+                        }
+                        if (matriz[i][j].r < maximosYMinimos[3]) {
+                            maximosYMinimos[3] = matriz[i][j].r;
+                            break;
+                        }
+                        break;
 
-            if (matriz[i][j].r > maximosYMinimos[0]) {
-                maximosYMinimos[0] = matriz[i][j].r;
-            }
-            if (matriz[i][j].g > maximosYMinimos[1]) {
-                maximosYMinimos[1] = matriz[i][j].g;
-            }
-            if (matriz[i][j].b > maximosYMinimos[2]) {
-                maximosYMinimos[2] = matriz[i][j].b;
-            }
-            if (matriz[i][j].r < maximosYMinimos[3]) {
-                maximosYMinimos[3] = matriz[i][j].r;
-            }
-            if (matriz[i][j].g < maximosYMinimos[4]) {
-                maximosYMinimos[4] = matriz[i][j].g;
-            }
-            if (matriz[i][j].b < maximosYMinimos[5]) {
-                maximosYMinimos[5] = matriz[i][j].b;
+                    case 1:
+                        if (matriz[i][j].g > maximosYMinimos[1]) {
+                            maximosYMinimos[1] = matriz[i][j].g;
+                            break;
+                        }
+                        if (matriz[i][j].g < maximosYMinimos[4]) {
+                            maximosYMinimos[4] = matriz[i][j].g;
+                            break;
+                        }
+                        break;
+                    case 2:
+                        if (matriz[i][j].b > maximosYMinimos[2]) {
+                            maximosYMinimos[2] = matriz[i][j].b;
+                            break;
+                        }
+                        if (matriz[i][j].b < maximosYMinimos[5]) {
+                            maximosYMinimos[5] = matriz[i][j].b;
+                            break;
+                        }
+                        break;
+                    default:break;
+                }
             }
         }
     }
@@ -179,13 +196,13 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
 
     vector<int> result(tramos);
     double grises;
-    double valoresTramo= 256 / (double) tramos;
+    double valoresTramo = 256 / (double) tramos;
 
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
             grises = matriz[i][j].r * 0.3 + matriz[i][j].g * 0.59 + matriz[i][j].b * 0.11;
-            for(int contador= 0; contador<tramos; contador++){
+            for (int contador = 0; contador < tramos; contador++) {
                 if (grises >= contador * valoresTramo &&
                     grises < (contador + 1) * valoresTramo) {
                     result[contador] = result[contador] + 1;
@@ -356,7 +373,7 @@ int main(int argv, char **argc) {
             }
 
             try {
-                histograma(generarMatrizPixeles(rutaEntrada),rutaSalida, stoi(parametroExtra));
+                histograma(generarMatrizPixeles(rutaEntrada), rutaSalida, stoi(parametroExtra));
             } catch (const std::invalid_argument) {
                 cerr << "El parámetro indicado por -t tiene que ser un número entero." << endl;
                 exit(-1);
