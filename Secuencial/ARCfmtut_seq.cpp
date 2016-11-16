@@ -24,41 +24,6 @@ struct pixel {
 };
 
 
-void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
-    ofstream archivo(rutaSalida, ios::binary);
-    if (archivo.is_open()) {
-
-        unsigned char *buffer = new unsigned char[ALTURA * ANCHURA * 3];
-
-        archivo.write((char *) &ALTURA, 4);
-        archivo.write((char *) &ANCHURA, 4);
-
-        for (int channel = 0; channel < 3; channel++) {
-            for (int i = 0; i < ALTURA; ++i) {
-                for (int j = 0; j < ANCHURA; ++j) {
-                    switch (channel) {
-                        case 0:
-                            buffer[i * ANCHURA + j] = matrizPixeles[i][j].r;
-                            break;
-                        case 1:
-                            buffer[i * ANCHURA + j + ALTURA * ANCHURA] = matrizPixeles[i][j].g;
-                            break;
-                        case 2:
-                            buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
-                            break;
-                    }
-
-                }
-            }
-        }
-        archivo.write((const char *) buffer, ALTURA * ANCHURA * 3);
-        archivo.close();
-    } else {
-        cerr << "El fichero de salida no se ha creado correctamente." << endl;
-        exit(-1);
-    }
-}
-
 /**
  * Método que lee el archivo de imagen de entrada y vierte los primeros dos grupos de
  * 4 bytes en las variables globales ALTURA y ANCHURA respectivamente. El resto del fichero
@@ -81,12 +46,10 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
 
         struct stat st;
         stat(rutaEntrada, &st);
-
-
         int fileSize = (int) st.st_size;
-
         if (fileSize != ALTURA * ANCHURA * 3 + 8) {
-            cerr << "El formato del fichero no es correcto" << endl;
+            cerr << "El fichero de entrada no tiene un formato correcto." << endl;
+            exit(-1);
         }
 
         char *buffer = new char[fileSize - 8];
@@ -120,6 +83,42 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
         exit(-1);
     }
     return matrizPixeles;
+}
+
+void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
+    ofstream archivo(rutaSalida, ios::binary);
+    if (archivo.is_open()) {
+
+        unsigned char *buffer = new unsigned char[ALTURA * ANCHURA * 3];
+
+        archivo.write((char *) &ALTURA, 4);
+        archivo.write((char *) &ANCHURA, 4);
+
+        for (int channel = 0; channel < 3; channel++) {
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    switch (channel) {
+                        case 0:
+                            buffer[i * ANCHURA + j] = matrizPixeles[i][j].r;
+                            break;
+                        case 1:
+                            buffer[i * ANCHURA + j + ALTURA * ANCHURA] = matrizPixeles[i][j].g;
+                            break;
+                        case 2:
+                            buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
+                            break;
+                    }
+
+                }
+            }
+        }
+        archivo.write((const char *) buffer, ALTURA * ANCHURA * 3);
+        archivo.close();
+    } else {
+        cerr << "El fichero de salida no se ha creado correctamente."
+                "Es posible que la ruta de salida no sea correcta." << endl;
+        exit(-1);
+    }
 }
 
 
@@ -171,13 +170,19 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
                             break;
                         }
                         break;
-                    default:break;
+                    default:
+                        break;
                 }
             }
         }
     }
 
     ofstream outputFile(rutaSalida);
+    if (!outputFile.is_open()) {
+        cerr << "El fichero de salida no se ha creado correctamente."
+                "Es posible que la ruta de salida no sea correcta." << endl;
+        exit(-1);
+    }
     outputFile << maximosYMinimos[0] << " " << maximosYMinimos[3] << " "
                << maximosYMinimos[1] << " " << maximosYMinimos[4] << " "
                << maximosYMinimos[2] << " " << maximosYMinimos[5];
@@ -192,8 +197,6 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
  * @return
  */
 void histograma(pixel **matriz, char *rutaSalida, int tramos) {
-    auto start = std::chrono::high_resolution_clock::now();
-
     vector<int> result(tramos);
     double grises;
     double valoresTramo = 256 / (double) tramos;
@@ -213,7 +216,11 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
     }
 
     ofstream outputFile(rutaSalida);
-
+    if (!outputFile.is_open()) {
+        cerr << "El fichero de salida no se ha creado correctamente."
+                "Es posible que la ruta de salida no sea correcta." << endl;
+        exit(-1);
+    }
 
     for (int i = 0; i < tramos; ++i) {
         outputFile << result[i];
@@ -221,12 +228,6 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
             outputFile << " ";
         }
     }
-
-    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Tiempo total transcurrido escalaGrises: " << microseconds << " microsegundos\n";
-
-
 }
 
 /**
@@ -326,7 +327,14 @@ int main(int argv, char **argc) {
                 i++;
                 continue;
             } catch (const std::invalid_argument) {
-                cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4." << endl;
+                cerr << "No se ha especificado correctamente la acción a realizar. "
+                        "Inserte el parámetro -u seguido de la acción a realizar, "
+                        "utilizando valores entre 0 - 4" << endl
+                     << "0: Histograma blanco y negro." << endl
+                     << "1: Máximos y Mínimos." << endl
+                     << "2: Aplicación de máscara." << endl
+                     << "3: Rotación de imagen." << endl
+                     << "4: Filtro blanco y negro." << endl;;
                 exit(-1);
             }
         }
@@ -375,7 +383,7 @@ int main(int argv, char **argc) {
             try {
                 histograma(generarMatrizPixeles(rutaEntrada), rutaSalida, stoi(parametroExtra));
             } catch (const std::invalid_argument) {
-                cerr << "El parámetro indicado por -t tiene que ser un número entero." << endl;
+                cerr << "El parámetro indicado por -t tiene que ser un NÚMERO ENTERO." << endl;
                 exit(-1);
             }
             break;
@@ -404,7 +412,7 @@ int main(int argv, char **argc) {
             try {
                 rotacion(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             } catch (const std::invalid_argument) {
-                cerr << "El parámetro indicado por -a tiene que ser un número decimal." << endl;
+                cerr << "El parámetro indicado por -a tiene que ser un NÚMERO DECIMAL." << endl;
                 exit(-1);
             }
             break;
@@ -417,15 +425,26 @@ int main(int argv, char **argc) {
                 exit(-1);
             }
             try {
+                if (stod(parametroExtra) < 0) {
+                    cerr << "El parámetro indicado por -r tiene que ser un número decimal POSITIVO." << endl;
+                    exit(-1);
+                }
                 filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             } catch (const std::invalid_argument) {
-                cerr << "El parámetro indicado por -r tiene que ser un número decimal." << endl;
+                cerr << "El parámetro indicado por -r tiene que ser un NÚMERO DECIMAL positivo." << endl;
                 exit(-1);
             }
             break;
         }
         default:
-            cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4.";
+            cerr << "No se ha especificado la acción a realizar. "
+                    "Inserte el parámetro -u seguido de la acción a realizar, "
+                    "utilizando VALORES ENTRE 0 - 4:" << endl
+                 << "0: Histograma blanco y negro." << endl
+                 << "1: Máximos y Mínimos." << endl
+                 << "2: Aplicación de máscara." << endl
+                 << "3: Rotación de imagen." << endl
+                 << "4: Filtro blanco y negro." << endl;
             exit(-1);
     }
     auto elapsed = std::chrono::high_resolution_clock::now() - start;
