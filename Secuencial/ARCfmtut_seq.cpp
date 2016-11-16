@@ -174,24 +174,47 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
  * @param azul
  * @return
  */
+
+bool busqueda_dicotomica(vector <double> &v, int principio, int fin, double &x, int index){
+    bool res;
+    if(principio <= fin){
+        int m =  ((fin - principio)/2) + principio;
+        if(x < v[m]) res = busqueda_dicotomica(v, principio, m-1, x,index+);
+        else if(x > v[m]) res = busqueda_dicotomica(v, m+1, fi n, x);
+        else res = true;
+    }else res = false;
+    return res;
+}
+
 void histograma(pixel **matriz, char *rutaSalida, int tramos) {
     auto start = std::chrono::high_resolution_clock::now();
 
     vector<int> result(tramos);
     double grises;
     double valoresTramo= 256 / (double) tramos;
+    vector<double> vector_tramos(tramos);
+    int contador =0;
+    for (int i = 0; i < tramos; ++i) {
+        vector_tramos[i]=valoresTramo*(i+1);
+    }
+    for (int i = 0; i < tramos; ++i) {
+        cout << vector_tramos[i];
+        cout <<" ";
 
+    }
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
             grises = matriz[i][j].r * 0.3 + matriz[i][j].g * 0.59 + matriz[i][j].b * 0.11;
-            for(int contador= 0; contador<tramos; contador++){
+            busqueda_dicotomica(vector_tramos, 0, tramos-1, grises, contador);
+
+           /*for(int contador= 0; contador<tramos; contador++){
                 if (grises >= contador * valoresTramo &&
                     grises < (contador + 1) * valoresTramo) {
                     result[contador] = result[contador] + 1;
                     break;
                 }
-            }
+            }*/
         }
     }
 
@@ -207,8 +230,7 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
 
     auto elapsed = std::chrono::high_resolution_clock::now() - start;
     long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Tiempo total transcurrido escalaGrises: " << microseconds << " microsegundos\n";
-
+    cout << "Tiempo total transcurrido histograma: " << microseconds << " microsegundos\n";
 
 }
 
