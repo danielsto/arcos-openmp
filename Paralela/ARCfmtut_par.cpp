@@ -243,10 +243,11 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
  * @param radio Radio del círculo dentro del cual no se aplicará el filtro
  * */
 void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
+    double t1 = omp_get_wtime();
     int centroX = ANCHURA / 2;
     int centroY = ALTURA / 2;
 
-    #pragma omp parallel for collapse(2) 
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ALTURA; ++j) {
             double suma = pow(i - centroY, 2) + pow(j - centroX, 2);
@@ -254,11 +255,18 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
                 matriz[i][j].r = (unsigned char) (matriz[i][j].r * 0.3);
                 matriz[i][j].g = (unsigned char) (matriz[i][j].g * 0.59);
                 matriz[i][j].b = (unsigned char) (matriz[i][j].b * 0.11);
-                //printf("(%d,%d), THREAD: %d \n" , i,j, omp_get_thread_num());
             }
         }
 
     }
+    double t2 = omp_get_wtime();
+    double diff = (t2-t1)*pow(10,3);
+    cout << "Tiempo transcurrido: " << diff << " milisegundos" << endl;
+    /**
+     * ---- TIEMPOS MEDIDOS ----
+     * ~38 milisegundos secuencial
+     * ~18 milisegundos paralela (-52.6%)
+     */
     escribirSalida(matriz, rutaSalida);
 }
 
@@ -319,7 +327,6 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
 }
 
 int main(int argv, char **argc) {
-    auto start = std::chrono::high_resolution_clock::now();
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
@@ -434,8 +441,5 @@ int main(int argv, char **argc) {
             cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4.";
             exit(-1);
     }
-    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Tiempo transcurrido: " << microseconds << " microsegundos\n";
     return 0;
 }
