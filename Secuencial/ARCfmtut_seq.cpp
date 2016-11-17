@@ -69,11 +69,11 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
         archivo.seekg(8, ios::beg);
         archivo.read(buffer, fileSize - 8);
 
-        for (int channel = 0; channel < 3; channel++) {
+        for (int canal = 0; canal < 3; canal++) {
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     if (!archivo.eof()) {
-                        switch (channel) {
+                        switch (canal) {
                             case 0:
                                 matrizPixeles[i][j].r = (unsigned char) buffer[i * ANCHURA + j];
                                 break;
@@ -314,24 +314,15 @@ void mascara(pixel **matrizPixeles, pixel **matrizMascara, char *rutaSalida) {
 /**
  * Rota la imagen un número de grados indicado por parámetro.
  *
- * La rotación se realiza tomando como centro de la rotación el centro de la imagen. Para operar con el centro
- * de la imagen usamos una variable filaCentro que toma la mitad de la altura de la matriz y otra variable
- * colCentro que toma la mitad de la anchura.
- *
- * Se realiza la conversión de grados a radianes ya que las operaciones que se realizan necesitan los datos
- * en esas unidades.
+ * La rotación se realiza tomando como centro de la rotación el centro de la imagen.
  *
  * Para poder llevar a cabo la función se crea una matriz auxiliar llamada "rotada" que es la
- * matriz en la que se irán colocando los píxeles una vez han sido rotados. En la creación de dicha matriz
- * se incluyen los paréntesis "()" tras [ALTURA] y [ANCHURA] para inicializar la matriz a 0.
+ * matriz en la que se irán colocando los píxeles una vez han sido rotados.
  *
  * Para cambiar los píxeles de la matriz original a la matriz auxiliar se recorre la matriz original y en cada iteración
- * se calcula la posición a la que se va a rotar el pixel, es decir, la posición de la matriz auxiliar en la que se
- * va a guardar el pixel a rotar. Esta posición viene indicada por "coorXrotada" y "coorYrotada". Para calcularla
- * se aplica la ecuación de rotación correpondiente a cada coordenada en la que i-filaCentro y j-colCentro hacen
- * referencia a la posición del píxel con respecto al centro de la imagen. Después de hacer la ecuación se suma
- * filaCentro a la posición 'y' y colCentro a la coordenada 'x' para que la variable "coorXrotada" y "coorYrotada"
- * indiquen la posición del píxel dentro de la matriz.
+ * se calcula la posición a la que se va a rotar el pixel ("coorXrotada" y "coorYrotada").
+ * Para calcularla se aplica la ecuación de rotación correpondiente a cada coordenada en la que i-filaCentro y j-colCentro hacen
+ * referencia a la posición del píxel con respecto al centro de la imagen.
  *
  * Una vez calculada la posición que va a ocupar el píxel en la nueva matriz se comprueba si se sale del rango de
  * la matriz con un if. Si no se sale entonces se introduce el pixel en la matriz auxiliar.
