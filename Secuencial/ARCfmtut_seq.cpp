@@ -9,6 +9,8 @@
 #include <chrono>
 #include <vector>
 #include <array>
+#include <math.h>
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -16,9 +18,9 @@ int ALTURA;
 int ANCHURA;
 
 struct pixel {
-    int r;
-    int g;
-    int b;
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
 };
 
 
@@ -42,20 +44,39 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
             matrizPixeles[i] = new pixel[ANCHURA];
         }
 
-        for(int channel = 0; channel < 3; channel++) {
-            for(int i=0; i< ALTURA; ++i){
-                for(int j=0; j< ANCHURA; ++j){
-                    if(!archivo.eof()){
-                        switch(channel) {
-                            case 0: archivo.read((char *) &matrizPixeles[i][j].r, 1); break;
-                            case 1: archivo.read((char *) &matrizPixeles[i][j].g, 1); break;
-                            case 2: archivo.read((char *) &matrizPixeles[i][j].b, 1); break;
-                        }
+        struct stat st;
+        stat(rutaEntrada, &st);
+        int fileSize = (int) st.st_size;
+        if (fileSize != ALTURA * ANCHURA * 3 + 8) {
+            cerr << "El fichero de entrada no tiene un formato correcto." << endl;
+            exit(-1);
+        }
 
+        char *buffer = new char[fileSize - 8];
+
+        archivo.seekg(8, ios::beg);
+        archivo.read(buffer, fileSize - 8);
+
+        for (int channel = 0; channel < 3; channel++) {
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    if (!archivo.eof()) {
+                        switch (channel) {
+                            case 0:
+                                matrizPixeles[i][j].r = (unsigned char) buffer[i * ANCHURA + j];
+                                break;
+                            case 1:
+                                matrizPixeles[i][j].g = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA];
+                                break;
+                            case 2:
+                                matrizPixeles[i][j].b = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA * 2];
+                                break;
+                        }
                     }
                 }
             }
         }
+
         archivo.close();
     } else {
         cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
@@ -64,44 +85,104 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
     return matrizPixeles;
 }
 
+void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
+    ofstream archivo(rutaSalida, ios::binary);
+    if (archivo.is_open()) {
+
+        unsigned char *buffer = new unsigned char[ALTURA * ANCHURA * 3];
+
+        archivo.write((char *) &ALTURA, 4);
+        archivo.write((char *) &ANCHURA, 4);
+
+        for (int channel = 0; channel < 3; channel++) {
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    switch (channel) {
+                        case 0:
+                            buffer[i * ANCHURA + j] = matrizPixeles[i][j].r;
+                            break;
+                        case 1:
+                            buffer[i * ANCHURA + j + ALTURA * ANCHURA] = matrizPixeles[i][j].g;
+                            break;
+                        case 2:
+                            buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
+                            break;
+                    }
+
+                }
+            }
+        }
+        archivo.write((const char *) buffer, ALTURA * ANCHURA * 3);
+        archivo.close();
+    } else {
+        cerr << "El fichero de salida no se ha creado correctamente."
+                "Es posible que la ruta de salida no sea correcta." << endl;
+        exit(-1);
+    }
+}
+
 
 /**
  * Escribe en un archivo los valores máximos y mínimos de todas las matrices de colores, en el
  * orden de Rojo, Verde y Azul.
  * Se crea un array de tamaño 6 que contiene en sus primeras 3 posiciones los valores máximos de
- * las tres matrices y en sus siguientes 3 posiciones los valores mínimos.
- * @param matrizR
- * @param matrizG
- * @param matrizB
+ * las tres matrices y en sus siguientes 3 posiciones los valores mínimos. Recorre los tres canales
+ * de color RGB, comparando los valores leídos con los anteriores valores máximos y mínimos,
+ * actualizándolos si es necesario.
+ * @param matriz Matriz de píxeles que se corresponde con la imagen a analizar
  * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
 
 void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
+    for (int canal = 0; canal < 3; ++canal) {
+        for (int i = 0; i < ALTURA; ++i) {
+            for (int j = 0; j < ANCHURA; ++j) {
+                switch (canal) {
+                    case 0:
+                        if (matriz[i][j].r > maximosYMinimos[0]) {
+                            maximosYMinimos[0] = matriz[i][j].r;
+                            break;
+                        }
+                        if (matriz[i][j].r < maximosYMinimos[3]) {
+                            maximosYMinimos[3] = matriz[i][j].r;
+                            break;
+                        }
+                        break;
 
-            if (matriz[i][j].r > maximosYMinimos[0]) {
-                maximosYMinimos[0] = matriz[i][j].r;
-            }
-            if (matriz[i][j].g > maximosYMinimos[1]) {
-                maximosYMinimos[1] = matriz[i][j].g;
-            }
-            if (matriz[i][j].b > maximosYMinimos[2]) {
-                maximosYMinimos[2] = matriz[i][j].b;
-            }
-            if (matriz[i][j].r < maximosYMinimos[3]) {
-                maximosYMinimos[3] = matriz[i][j].r;
-            }
-            if (matriz[i][j].g < maximosYMinimos[4]) {
-                maximosYMinimos[4] = matriz[i][j].g;
-            }
-            if (matriz[i][j].b < maximosYMinimos[5]) {
-                maximosYMinimos[5] = matriz[i][j].b;
+                    case 1:
+                        if (matriz[i][j].g > maximosYMinimos[1]) {
+                            maximosYMinimos[1] = matriz[i][j].g;
+                            break;
+                        }
+                        if (matriz[i][j].g < maximosYMinimos[4]) {
+                            maximosYMinimos[4] = matriz[i][j].g;
+                            break;
+                        }
+                        break;
+                    case 2:
+                        if (matriz[i][j].b > maximosYMinimos[2]) {
+                            maximosYMinimos[2] = matriz[i][j].b;
+                            break;
+                        }
+                        if (matriz[i][j].b < maximosYMinimos[5]) {
+                            maximosYMinimos[5] = matriz[i][j].b;
+                            break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
+
     ofstream outputFile(rutaSalida);
+    if (!outputFile.is_open()) {
+        cerr << "El fichero de salida no se ha creado correctamente."
+                "Es posible que la ruta de salida no sea correcta." << endl;
+        exit(-1);
+    }
     outputFile << maximosYMinimos[0] << " " << maximosYMinimos[3] << " "
                << maximosYMinimos[1] << " " << maximosYMinimos[4] << " "
                << maximosYMinimos[2] << " " << maximosYMinimos[5];
@@ -115,82 +196,37 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
  * @param azul
  * @return
  */
-double **escalaGrises(pixel **matriz) {
-
-
-    double **grises = new double *[ALTURA];
-    for (int k = 0; k < ALTURA; ++k) {
-        grises[k] = new double[ANCHURA];
-    }
-
-
-    for (int i = 0; i < ALTURA; i++) {
-        for (int j = 0; j < ANCHURA; j++) {
-            grises[i][j] = matriz[i][j].r * 0.3 + matriz[i][j].g * 0.59 + matriz[i][j].b * 0.11;
-        }
-    }
-
-    return grises;
-}
-
-/**
- * Se realiza un histograma de la imagen leída (en escala de grises) según el nùmero de tramos
- * indicado por parámetros. El resultado se guarda en un fichero de texto plano.
- * @param escalagrises Matriz con los valores de los pixeles de la imagen en escala de grises
- * @param tramos Número de tramos deseados en los que se divide el histograma
- */
-void histograma(double **escalagrises, int tramos, char *rutaSalida) {
+void histograma(pixel **matriz, char *rutaSalida, int tramos) {
     vector<int> result(tramos);
+    double grises;
+    double valoresTramo = 256 / (double) tramos;
 
-    double valoresTramo = 256 / (double)tramos;
-    int contador = 0;
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
-            while (contador < tramos) {
-                if (escalagrises[i][j] >= contador * valoresTramo &&
-                    escalagrises[i][j] < (contador + 1) * valoresTramo) {
+            grises = matriz[i][j].r * 0.3 + matriz[i][j].g * 0.59 + matriz[i][j].b * 0.11;
+            for (int contador = 0; contador < tramos; contador++) {
+                if (grises >= contador * valoresTramo &&
+                    grises < (contador + 1) * valoresTramo) {
                     result[contador] = result[contador] + 1;
-                    contador = 0;
                     break;
-                } else {
-                    contador++;
                 }
             }
         }
     }
 
     ofstream outputFile(rutaSalida);
+    if (!outputFile.is_open()) {
+        cerr << "El fichero de salida no se ha creado correctamente."
+                "Es posible que la ruta de salida no sea correcta." << endl;
+        exit(-1);
+    }
 
     for (int i = 0; i < tramos; ++i) {
         outputFile << result[i];
-        outputFile << " ";
-    }
-
-}
-
-void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
-    ofstream archivo(rutaSalida, ios::binary);
-    if (archivo.is_open()) {
-        archivo.write((char *) &ALTURA, 4);
-        archivo.write((char *) &ANCHURA, 4);
-
-
-        for(int channel = 0; channel < 3; channel++) {
-            for(int i=0; i< ALTURA; ++i){
-                for(int j=0; j< ANCHURA; ++j){
-                    switch(channel) {
-                        case 0: archivo.write((char *) &matrizPixeles[i][j].r, 1); break;
-                        case 1: archivo.write((char *) &matrizPixeles[i][j].g, 1); break;
-                        case 2: archivo.write((char *) &matrizPixeles[i][j].b, 1); break;
-                    }
-
-                }
-            }
+        if (i != tramos - 1) {
+            outputFile << " ";
         }
-    } else {
-        cerr << "El fichero de salida no se ha creado correctamente." << endl;
-        exit(-1);
     }
 }
 
@@ -203,29 +239,27 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
  * @param matrizB
  * @param radio Radio del círculo dentro del cual no se aplicará el filtro
  * */
-void filtroBN(pixel **matriz, int radio, char *rutaSalida) {
-
+void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
     int centroX = ANCHURA / 2;
     int centroY = ALTURA / 2;
 
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ALTURA; ++j) {
-            float suma = pow(i - centroY, 2) + pow(j - centroX, 2);
+            double suma = pow(i - centroY, 2) + pow(j - centroX, 2);
             if (suma > pow(radio, 2)) {
-                matriz[i][j].r = matriz[i][j].r * 0.3;
-                matriz[i][j].g = matriz[i][j].g * 0.59;
-                matriz[i][j].b = matriz[i][j].b * 0.11;
+                matriz[i][j].r = (unsigned char) (matriz[i][j].r * 0.3);
+                matriz[i][j].g = (unsigned char) (matriz[i][j].g * 0.59);
+                matriz[i][j].b = (unsigned char) (matriz[i][j].b * 0.11);
             }
         }
 
     }
-
     escribirSalida(matriz, rutaSalida);
 }
 
-void mascara (pixel **imagen, pixel **mascara, char *rutaSalida){
-    for(int i=0; i<ALTURA; ++i) {
-        for(int j=0; j<ANCHURA; ++j) {
+void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
             imagen[i][j].r = imagen[i][j].r * mascara[i][j].r;
             imagen[i][j].g = imagen[i][j].g * mascara[i][j].g;
             imagen[i][j].b = imagen[i][j].b * mascara[i][j].b;
@@ -234,50 +268,43 @@ void mascara (pixel **imagen, pixel **mascara, char *rutaSalida){
     escribirSalida(imagen, rutaSalida);
 }
 
-void rotacion(pixel **imagen, double grados, char *rutaSalida){
-    double yMax= ALTURA-1;
-    double xMax= ANCHURA-1;
-    int filaCentro= ceil(yMax/2);
-    int colCentro= ceil(xMax/2);
-    int coorX;
-    int coorY;
+void rotacion(pixel **imagen, double grados, char *rutaSalida) {
+    double yMax = ALTURA;
+    double xMax = ANCHURA;
+    double filaCentro = yMax / 2;
+    double colCentro = xMax / 2;
     int coorXrotada;
     int coorYrotada;
 
-    double radianes=grados*3.14159/180;
 
-    pixel **rotada= new pixel*[ALTURA];
-    for(int i=0; i<ALTURA; i++) {
+    double radianes = grados * M_PI / 180;
+
+    pixel **rotada = new pixel *[ALTURA];
+    for (int i = 0; i < ALTURA; i++) {
         rotada[i] = new pixel[ANCHURA];
     }
 
-    for(int i=0; i<ALTURA; ++i){
-        for(int j=0; j<ANCHURA; ++j) {
-            rotada[i][j].r= 0;
-            rotada[i][j].g= 0;
-            rotada[i][j].b= 0;
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            rotada[i][j].r = 0;
+            rotada[i][j].g = 0;
+            rotada[i][j].b = 0;
         }
     }
 
-    for(int i=0; i<ALTURA; ++i){
-        for(int j=0; j<ANCHURA; ++j) {
-            coorX= j - colCentro;
-            coorY= i - filaCentro;
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
 
-            coorXrotada = round(cos(radianes)*coorX - sin(radianes)*coorY);
-            coorYrotada = round(sin(radianes)*coorX + cos(radianes)*coorY);
 
-            coorX= coorX +colCentro;
-            coorY= coorY +filaCentro;
-            coorXrotada= coorXrotada+colCentro;
-            coorYrotada= coorYrotada+filaCentro;
+            coorXrotada = ceil((cos(radianes) * (j - colCentro) - sin(radianes) * (i - filaCentro)) + colCentro);
+            coorYrotada = ceil((sin(radianes) * (j - colCentro) + cos(radianes) * (i - filaCentro)) + filaCentro);
 
-            if(coorXrotada<0 || coorXrotada> ANCHURA-1 || coorYrotada<0 || coorYrotada> ALTURA-1){
-            }
-            else{
-                rotada[coorYrotada][coorXrotada].r= imagen[coorY][coorX].r;
-                rotada[coorYrotada][coorXrotada].g= imagen[coorY][coorX].g;
-                rotada[coorYrotada][coorXrotada].b= imagen[coorY][coorX].b;
+
+            if (coorXrotada < 0 || coorXrotada > ANCHURA - 1 || coorYrotada < 0 || coorYrotada > ALTURA - 1) {
+            } else {
+                rotada[coorYrotada][coorXrotada].r = imagen[i][j].r;
+                rotada[coorYrotada][coorXrotada].g = imagen[i][j].g;
+                rotada[coorYrotada][coorXrotada].b = imagen[i][j].b;
             }
         }
     }
@@ -291,12 +318,25 @@ int main(int argv, char **argc) {
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
-    int ejecucion = 0;
+    char *parametroLetra = NULL;
+    int ejecucion = -1;
     for (int i = 1; i < argv; ++i) {
         if (strcmp(argc[i], "-u") == 0) {
-            ejecucion = atoi(argc[i + 1]);
-            i++;
-            continue;
+            try {
+                ejecucion = stoi(argc[i + 1]);
+                i++;
+                continue;
+            } catch (const std::invalid_argument) {
+                cerr << "No se ha especificado correctamente la acción a realizar. "
+                        "Inserte el parámetro -u seguido de la acción a realizar, "
+                        "utilizando valores entre 0 - 4" << endl
+                     << "0: Histograma blanco y negro." << endl
+                     << "1: Máximos y Mínimos." << endl
+                     << "2: Aplicación de máscara." << endl
+                     << "3: Rotación de imagen." << endl
+                     << "4: Filtro blanco y negro." << endl;;
+                exit(-1);
+            }
         }
         if (strcmp(argc[i], "-i") == 0) {
             rutaEntrada = argc[i + 1];
@@ -310,16 +350,42 @@ int main(int argv, char **argc) {
         }
         if (strcmp(argc[i], "-t") == 0 || strcmp(argc[i], "-r") == 0 || strcmp(argc[i], "-a") == 0 ||
             strcmp(argc[i], "-f") == 0) {
+            parametroLetra = argc[i];
             parametroExtra = argc[i + 1];
             i++;
             continue;
         }
     }
 
+    if (rutaEntrada == NULL) {
+        cerr << "No se ha especificado el fichero de entrada. Inserte el parámetro -i seguido de la ruta." << endl;
+        exit(-1);
+    }
+    if (rutaSalida == NULL) {
+        cerr << "No se ha especificado el fichero de salida. Inserte el parámetro -o seguido de la ruta." << endl;
+        exit(-1);
+    }
+    if (ejecucion == -1) {
+        cerr << "No se ha especificado la acción a realizar. Inserte el parámetro -u seguido de la acción (0-4)."
+             << endl;
+        exit(-1);
+    }
+
     switch (ejecucion) {
         case 0: {
-            double **resultado = escalaGrises(generarMatrizPixeles(rutaEntrada));
-            histograma(resultado, atoi(parametroExtra), rutaSalida);
+            if (parametroExtra == NULL || strcmp(parametroLetra, "-t") != 0) {
+                cerr << "No se ha especificado el número de tramos. "
+                        "Inserte el parámetro -t seguido del número de tramos."
+                     << endl;
+                exit(-1);
+            }
+
+            try {
+                histograma(generarMatrizPixeles(rutaEntrada), rutaSalida, stoi(parametroExtra));
+            } catch (const std::invalid_argument) {
+                cerr << "El parámetro indicado por -t tiene que ser un NÚMERO ENTERO." << endl;
+                exit(-1);
+            }
             break;
         }
         case 1: {
@@ -327,22 +393,62 @@ int main(int argv, char **argc) {
             break;
         }
         case 2: {
+            if (parametroExtra == NULL || strcmp(parametroLetra, "-f") != 0) {
+                cerr << "No se ha especificado la dirección del fichero de máscara. "
+                        "Inserte el parámetro -f seguido del ángulo de la rotación de la imagen."
+                     << endl;
+                exit(-1);
+            }
+            mascara(generarMatrizPixeles(rutaEntrada), generarMatrizPixeles(parametroExtra), rutaSalida);
             break;
         }
         case 3: {
-            rotacion(generarMatrizPixeles(rutaEntrada), atoi(parametroExtra), rutaSalida);
+            if (parametroExtra == NULL || strcmp(parametroLetra, "-a") != 0) {
+                cerr << "No se ha especificado el ángulo de rotación. "
+                        "Inserte el parámetro -a seguido del ángulo de la rotación de la imagen."
+                     << endl;
+                exit(-1);
+            }
+            try {
+                rotacion(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
+            } catch (const std::invalid_argument) {
+                cerr << "El parámetro indicado por -a tiene que ser un NÚMERO DECIMAL." << endl;
+                exit(-1);
+            }
             break;
         }
         case 4: {
-            filtroBN(generarMatrizPixeles(rutaEntrada), atoi(parametroExtra), rutaSalida);
-
+            if (parametroExtra == NULL || strcmp(parametroLetra, "-r") != 0) {
+                cerr << "No se ha especificado el radio del filtro B/N. "
+                        "Inserte el parámetro -r seguido del radio del filtro."
+                     << endl;
+                exit(-1);
+            }
+            try {
+                if (stod(parametroExtra) < 0) {
+                    cerr << "El parámetro indicado por -r tiene que ser un número decimal POSITIVO." << endl;
+                    exit(-1);
+                }
+                filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
+            } catch (const std::invalid_argument) {
+                cerr << "El parámetro indicado por -r tiene que ser un NÚMERO DECIMAL positivo." << endl;
+                exit(-1);
+            }
             break;
         }
         default:
-            cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4.";
+            cerr << "No se ha especificado la acción a realizar. "
+                    "Inserte el parámetro -u seguido de la acción a realizar, "
+                    "utilizando VALORES ENTRE 0 - 4:" << endl
+                 << "0: Histograma blanco y negro." << endl
+                 << "1: Máximos y Mínimos." << endl
+                 << "2: Aplicación de máscara." << endl
+                 << "3: Rotación de imagen." << endl
+                 << "4: Filtro blanco y negro." << endl;
+            exit(-1);
     }
     auto elapsed = std::chrono::high_resolution_clock::now() - start;
     long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Tiempo transcurrido: "<< microseconds << " microsegundos\n";
+    cout << "Tiempo transcurrido: " << microseconds << " microsegundos\n";
     return 0;
 }
