@@ -47,12 +47,13 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
          *   Se hace en tiempo de ejecución --> Añade excesos de computación indirecta.
          *   Bueno si la carga de trabajo de cada hilo varía.
          *
-         * COLLAPSE(N): Especifica cuántos bucles (N) dentro de un bucle anidado deben
-         * 'colapsar' en un solo espacio de iteracion y divididos respecto al tipo de
-         * SCHEDULE indicado.
+         * COLLAPSE(N): Especifica cuántos bucles (N), a partir de la cláusula, dentro
+         * de un bucle anidado deben 'colapsar' en un solo espacio de iteracion y divididos
+         * respecto al tipo de SCHEDULE indicado.
          */
-        #pragma omp parallel for collapse(2)
+
         for (int channel = 0; channel < 3; channel++) {
+        #pragma omp parallel for collapse(2)
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     switch (channel) {
@@ -114,8 +115,8 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
         archivo.read(buffer, fileSize - 8);
 
 
-        #pragma omp parallel for collapse(2)
         for (int channel = 0; channel < 3; channel++) {
+        #pragma omp parallel for collapse(2)
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     if (!archivo.eof()) {
