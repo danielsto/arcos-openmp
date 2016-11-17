@@ -244,7 +244,7 @@ void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
                         break;
                     }
                 }
-            } if (grises > m) {
+            } else {
                 for (int contador = tramos/2; contador < tramos; contador++) {
                     if (grises >= contador * valoresTramo &&
                         grises < (contador + 1) * valoresTramo) {
