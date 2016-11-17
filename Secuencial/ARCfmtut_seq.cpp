@@ -197,19 +197,34 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
  * @return
  */
 void histograma(pixel **matriz, char *rutaSalida, int tramos) {
+    if (tramos <= 0) {
+        cerr << "El número de tramos debería ser mayor que 0.";
+        exit(-1);
+    }
     vector<int> result(tramos);
     double grises;
     double valoresTramo = 256 / (double) tramos;
-
+    double m = (tramos / 2) * valoresTramo;
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
             grises = matriz[i][j].r * 0.3 + matriz[i][j].g * 0.59 + matriz[i][j].b * 0.11;
-            for (int contador = 0; contador < tramos; contador++) {
-                if (grises >= contador * valoresTramo &&
-                    grises < (contador + 1) * valoresTramo) {
-                    result[contador] = result[contador] + 1;
-                    break;
+
+            if (grises < m) {
+                for (int contador = 0; contador < tramos; contador++) {
+                    if (grises >= contador * valoresTramo &&
+                        grises < (contador + 1) * valoresTramo) {
+                        result[contador] = result[contador] + 1;
+                        break;
+                    }
+                }
+            } if (grises > m) {
+                for (int contador = tramos/2; contador < tramos; contador++) {
+                    if (grises >= contador * valoresTramo &&
+                        grises < (contador + 1) * valoresTramo) {
+                        result[contador] = result[contador] + 1;
+                        break;
+                    }
                 }
             }
         }
