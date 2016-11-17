@@ -17,6 +17,9 @@ using namespace std;
 int ALTURA;
 int ANCHURA;
 
+double t1 = 0;
+double t2 = 0;
+
 struct pixel {
     unsigned char r;
     unsigned char g;
@@ -25,6 +28,9 @@ struct pixel {
 
 
 void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
+
+//    t1 = t1 + omp_get_wtime();
+
     ofstream archivo(rutaSalida, ios::binary);
     if (archivo.is_open()) {
 
@@ -33,6 +39,7 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
         archivo.write((char *) &ALTURA, 4);
         archivo.write((char *) &ANCHURA, 4);
 
+        //#pragma omp parallel for
         for (int channel = 0; channel < 3; channel++) {
         #pragma omp parallel for collapse(2)
             for (int i = 0; i < ALTURA; ++i) {
@@ -58,6 +65,9 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
         cerr << "El fichero de salida no se ha creado correctamente." << endl;
         exit(-1);
     }
+
+//    t2 = t2 + omp_get_wtime();
+
 }
 
 /**
@@ -69,6 +79,10 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
  * @param rutaEntrada Indica la ruta del archivo de entrada a leer.
  */
 pixel **generarMatrizPixeles(char *rutaEntrada) {
+
+//    t1 = t1 + omp_get_wtime();
+
+
     ifstream archivo(rutaEntrada, ios::binary);
     pixel **matrizPixeles;
     if (archivo.is_open()) {
@@ -96,7 +110,7 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
         archivo.read(buffer, fileSize - 8);
 
 
-
+        //#pragma omp parallel for
         for (int channel = 0; channel < 3; channel++) {
         #pragma omp parallel for collapse(2)
             for (int i = 0; i < ALTURA; ++i) {
@@ -128,6 +142,11 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
         cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
         exit(-1);
     }
+
+
+//    t2 = t2 + omp_get_wtime();
+
+
     return matrizPixeles;
 }
 
@@ -202,9 +221,11 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
 */
 
 void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
+
+    //t1 = t1 + omp_get_wtime();
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
 
-
+    //#pragma omp parallel for
     for (int canal = 0; canal < 3; ++canal) {
         #pragma omp parallel for collapse(2)
         for (int i = 0; i < ALTURA; ++i) {
@@ -257,6 +278,9 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
     outputFile << maximosYMinimos[0] << " " << maximosYMinimos[3] << " "
                << maximosYMinimos[1] << " " << maximosYMinimos[4] << " "
                << maximosYMinimos[2] << " " << maximosYMinimos[5];
+
+    //t2 = t2 + omp_get_wtime();
+
 }
 
 
@@ -269,7 +293,6 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
  * @return
  */
 void histograma(pixel **matriz, char *rutaSalida, int tramos) {
-    auto start = std::chrono::high_resolution_clock::now();
 
     vector<int> result(tramos);
     double grises;
@@ -299,10 +322,6 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
         }
     }
 
-    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Tiempo total transcurrido escalaGrises: " << microseconds << " microsegundos\n";
-
 
 }
 
@@ -316,9 +335,13 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
  * @param radio Radio del círculo dentro del cual no se aplicará el filtro
  * */
 void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
+
+    t1 = t1 + omp_get_wtime();
+
     int centroX = ANCHURA / 2;
     int centroY = ALTURA / 2;
 
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ALTURA; ++j) {
             double suma = pow(i - centroY, 2) + pow(j - centroX, 2);
@@ -330,12 +353,22 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
         }
 
     }
+
+    t2 = t2 +omp_get_wtime();
+
     escribirSalida(matriz, rutaSalida);
 }
 
+
+/*
+ * Se realiza un parallel for
+ */
 void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
 
-//#pragma omp parallel for collapse(2)
+
+//    t1 = t1 + omp_get_wtime();
+
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
             imagen[i][j].r = imagen[i][j].r * mascara[i][j].r;
@@ -344,6 +377,8 @@ void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
             //printf("%d %d %d\n", i, j, omp_get_thread_num());
         }
     }
+
+//    t2 = t2 +omp_get_wtime();
 
     escribirSalida(imagen, rutaSalida);
 
@@ -397,6 +432,7 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
 }
 
 int main(int argv, char **argc) {
+//    double t1 = omp_get_wtime();
 
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
@@ -465,7 +501,7 @@ int main(int argv, char **argc) {
             break;
         }
         case 1: {
-            for (int i = 0; i <1; ++i) {
+            for (int i = 0; i <10; ++i) {
                 calcularMaximosYMinimos(generarMatrizPixeles(rutaEntrada), rutaSalida);
             }
 
@@ -509,7 +545,10 @@ int main(int argv, char **argc) {
                 exit(-1);
             }
             try {
-                filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
+                for (int i = 0; i <10 ; ++i) {
+                    filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
+                }
+
             } catch (const std::invalid_argument) {
                 cerr << "El parámetro indicado por -r tiene que ser un número decimal." << endl;
                 exit(-1);
@@ -520,6 +559,10 @@ int main(int argv, char **argc) {
             cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4.";
             exit(-1);
     }
+
+//    double t2 = omp_get_wtime();
+      double diff = (t2-t1)*pow(10,6);
+      cout << "Tiempo transcurrido: " << diff/10 << " microsegundos" << endl;
 
 
     return 0;
