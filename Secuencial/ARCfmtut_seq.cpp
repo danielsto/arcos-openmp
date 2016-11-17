@@ -283,6 +283,18 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
     }
     escribirSalida(matriz, rutaSalida);
 }
+/**
+ * Aplica una mascara a la imagen de entrada.
+ *
+ * En esta función se recorre la matriz de la imagen de entrada ("imagen") con dos bucles for anidados multiplicando
+ * cada valor RGB de cada píxel de la matriz "imagen" por el valor RGB correspondiente de la matriz "mascara".
+ *
+ * El resultado se escribe en un fichero de salida llamando a la función "escribirSalida"
+ *
+ * @param imagen
+ * @param mascara
+ * @param rutaSalida
+ */
 
 void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
     for (int i = 0; i < ALTURA; ++i) {
@@ -295,6 +307,38 @@ void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
     escribirSalida(imagen, rutaSalida);
 }
 
+/**
+ * Rota la imagen un número de grados indicado por parámetro.
+ *
+ * La rotación se realiza tomando como centro de la rotación el centro de la imagen. Para operar con el centro
+ * de la imagen usamos una variable filaCentro que toma la mitad de la altura de la matriz y otra variable
+ * colCentro que toma la mitad de la anchura.
+ *
+ * Se realiza la conversión de grados a radianes ya que las operaciones que se realizan necesitan los datos
+ * en esas unidades.
+ *
+ * Para poder llevar a cabo la función se crea una matriz auxiliar llamada "rotada" que es la
+ * matriz en la que se irán colocando los píxeles una vez han sido rotados. En la creación de dicha matriz
+ * se incluyen los paréntesis "()" tras [ALTURA] y [ANCHURA] para inicializar la matriz a 0.
+ *
+ * Para cambiar los píxeles de la matriz original a la matriz auxiliar se recorre la matriz original y en cada iteración
+ * se calcula la posición a la que se va a rotar el pixel, es decir, la posición de la matriz auxiliar en la que se
+ * va a guardar el pixel a rotar. Esta posición viene indicada por "coorXrotada" y "coorYrotada". Para calcularla
+ * se aplica la ecuación de rotación correpondiente a cada coordenada en la que i-filaCentro y j-colCentro hacen
+ * referencia a la posición del píxel con respecto al centro de la imagen. Después de hacer la ecuación se suma
+ * filaCentro a la posición 'y' y colCentro a la coordenada 'x' para que la variable "coorXrotada" y "coorYrotada"
+ * indiquen la posición del píxel dentro de la matriz.
+ *
+ * Una vez calculada la posición que va a ocupar el píxel en la nueva matriz se comprueba si se sale del rango de
+ * la matriz con un if. Si no se sale entonces se introduce el pixel en la matriz auxiliar.
+ *
+ * Una vez se ha llenado la matriz auxiliar se llama a la función "escribirSalida" para que la escriba en un fichero de salida.
+ *
+ * @param imagen
+ * @param grados
+ * @param rutaSalida
+ * */
+
 void rotacion(pixel **imagen, double grados, char *rutaSalida) {
     double filaCentro = ALTURA / 2;
     double colCentro = ANCHURA / 2;
@@ -302,17 +346,9 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
     int coorYrotada=0;
     double radianes = grados * M_PI / 180;
 
-    pixel **rotada = new pixel *[ALTURA];
+    pixel **rotada = new pixel *[ALTURA]();
     for (int i = 0; i < ALTURA; i++) {
-        rotada[i] = new pixel[ANCHURA];
-    }
-
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            rotada[i][j].r = 0;
-            rotada[i][j].g = 0;
-            rotada[i][j].b = 0;
-        }
+        rotada[i] = new pixel[ANCHURA]();
     }
 
     for (int i = 0; i < ALTURA; ++i) {
@@ -320,7 +356,6 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
 
             coorXrotada = ceil((cos(radianes) * (j - colCentro) - sin(radianes) * (i - filaCentro)) + colCentro);
             coorYrotada = ceil((sin(radianes) * (j - colCentro) + cos(radianes) * (i - filaCentro)) + filaCentro);
-
 
             if (coorXrotada >= 0 && coorXrotada <= ANCHURA - 1 && coorYrotada >= 0 && coorYrotada <= ALTURA - 1) {
                 rotada[coorYrotada][coorXrotada]= imagen[i][j];
