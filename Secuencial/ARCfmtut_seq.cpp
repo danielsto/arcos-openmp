@@ -166,16 +166,27 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
                << maximosYMinimos[2] << " " << maximosYMinimos[5];
 }
 
+
 /**
- * Construye una matriz con los valores de los píxeles de la imagen transformados a escala de
- * grises necesaria por parámetro para la función histograma()
- * @param rojo
- * @param verde
- * @param azul
- * @return
+ *La función histograma recibe como parametros una matriz de estrucutras pixel que contiene la imagen sobre la que se tiene
+ * que realizar el histograma, una ruta a un fichero en el que se escribirá el histograma y el número de tramos que deberá tener.
+ *
+ * Primero se comprueba que el número de tramos pasado como parametro es mayor que 0. Despueés se crea un array donde se almacenará
+ * el histograma, se calcula el rango de valores que tendrá cada tramo y el valor medio del histograma.
+ *
+ * En segundo lugar se recorre la matriz de pixeles para transformarla a escala de grises, y se coloca cada valor en el tramo
+ * correspondiente. Para ello, primero se comprueba si el valor en escala de grises es mayor o menor que el valor medio del
+ * histograma. Una vez que se realiza esta comprobación, se compara el valor en escala de grises con los valores extremos de
+ * cada tramo. En caso de que el valor se encuentre entre estos dos extremos, significa que está contenido en ese tramo, y se
+ * suma 1 al número de valores que hay en ese tramo.
+ *
+ * Por último, se escribe el array resultante en el fichero de salida, especifcado como parametro,que contiene
+ * el histograma completo.
+ *
+ * @param matriz
+ * @param rutaSalida
+ * @param tramos
  */
-
-
 void histograma(pixel **matriz, char *rutaSalida, int tramos) {
     auto start = std::chrono::high_resolution_clock::now();
     if (tramos <= 0) {
@@ -185,13 +196,13 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
     vector<int> result(tramos);
     double grises;
     double valoresTramo = 256 / (double) tramos;
-    double m = (tramos / 2) * valoresTramo;
+    double valorMedio = (tramos / 2) * valoresTramo;
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
             grises = matriz[i][j].r * 0.3 + matriz[i][j].g * 0.59 + matriz[i][j].b * 0.11;
 
-            if (grises < m) {
+            if (grises < valorMedio) {
                 for (int contador = 0; contador < tramos; contador++) {
                     if (grises >= contador * valoresTramo &&
                         grises < (contador + 1) * valoresTramo) {
@@ -199,7 +210,7 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
                         break;
                     }
                 }
-            } if (grises > m) {
+            } if (grises > valorMedio) {
                 for (int contador = tramos/2; contador < tramos; contador++) {
                     if (grises >= contador * valoresTramo &&
                         grises < (contador + 1) * valoresTramo) {
