@@ -39,17 +39,17 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
         archivo.read((char *) &ALTURA, 4);
         archivo.read((char *) &ANCHURA, 4);
 
-        matrizPixeles = new pixel *[ALTURA];
-        for (int i = 0; i < ALTURA; ++i) {
-            matrizPixeles[i] = new pixel[ANCHURA];
-        }
-
         struct stat st;
         stat(rutaEntrada, &st);
         int fileSize = (int) st.st_size;
         if (fileSize != ALTURA * ANCHURA * 3 + 8) {
             cerr << "El fichero de entrada no tiene un formato correcto." << endl;
             exit(-1);
+        }
+
+        matrizPixeles = new pixel *[ALTURA];
+        for (int i = 0; i < ALTURA; ++i) {
+            matrizPixeles[i] = new pixel[ANCHURA];
         }
 
         char *buffer = new char[fileSize - 8];
