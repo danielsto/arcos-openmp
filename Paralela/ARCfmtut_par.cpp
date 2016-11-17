@@ -34,7 +34,7 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
         archivo.write((char *) &ANCHURA, 4);
 
         for (int channel = 0; channel < 3; channel++) {
-#pragma omp parallel for collapse(2)
+        #pragma omp parallel for collapse(2)
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     switch (channel) {
@@ -98,7 +98,7 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
 
 
         for (int channel = 0; channel < 3; channel++) {
-#pragma omp parallel for collapse(2)
+        #pragma omp parallel for collapse(2)
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     if (!archivo.eof()) {
@@ -131,108 +131,134 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
     return matrizPixeles;
 }
 
-
 /**
  * Escribe en un archivo los valores máximos y mínimos de todas las matrices de colores, en el
  * orden de Rojo, Verde y Azul.
  * Se crea un array de tamaño 6 que contiene en sus primeras 3 posiciones los valores máximos de
- * las tres matrices y en sus siguientes 3 posiciones los valores mínimos.
- * @param matrizR
- * @param matrizG
- * @param matrizB
+ * las tres matrices y en sus siguientes 3 posiciones los valores mínimos. Recorre los tres canales
+ * de color RGB, comparando los valores leídos con los anteriores valores máximos y mínimos,
+ * actualizándolos si es necesario.
+ * @param matriz Matriz de píxeles que se corresponde con la imagen a analizar
  * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
-
+/*
 void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
+
+    #pragma omp parallel for collapse(2) shared(maximosYMinimos)
     for (int i = 0; i < ALTURA; ++i) {
-        //cout << "-----------------------------------------\n";
         for (int j = 0; j < ANCHURA; ++j) {
 
             omp_set_num_threads(6);
-#pragma omp parallel sections
+            #pragma omp sections
             {
-#pragma omp section
-                {
-                    if (matriz[i][j].r > maximosYMinimos[0]) {
-                        maximosYMinimos[0] = matriz[i][j].r;
-                    }
-                    //cout << omp_get_thread_num() << " if 0 " << endl;
-                }
-
-
-
-
-#pragma omp section
-
-                {
-                    if (matriz[i][j].g > maximosYMinimos[1]) {
-                        maximosYMinimos[1] = matriz[i][j].g;
-                    }
-                    //cout << omp_get_thread_num() << " if 1 " << endl;
-                }
-
-
-#pragma omp section
-                {
-                    if (matriz[i][j].b > maximosYMinimos[2]) {
-                        maximosYMinimos[2] = matriz[i][j].b;
-                    }
-                    //cout << omp_get_thread_num() << " if 2 " << endl;
-                }
-
-
-
-#pragma omp section
-                {
-                    if (matriz[i][j].r < maximosYMinimos[3]) {
-
-                        maximosYMinimos[3] = matriz[i][j].r;
-                    }
-                    //cout << omp_get_thread_num() << " if 3 " << endl;
-                }
-
-
-
-#pragma omp section
-                {
-                    if (matriz[i][j].g < maximosYMinimos[4]) {
-
-                        maximosYMinimos[4] = matriz[i][j].g;
-                    }
-                    //cout << omp_get_thread_num() << " if 4 " << endl;
-                }
-
-
-
-#pragma omp section
-                {
-                    if (matriz[i][j].b < maximosYMinimos[5]) {
-
-                        maximosYMinimos[5] = matriz[i][j].b;
-                    }
-                    //cout << omp_get_thread_num() << " if 5 " << endl;
-                    //cout << "NÚMERO TOTAL DE HILOS: " << omp_get_num_threads() << endl;
+                #pragma omp section
+                if (matriz[i][j].r > maximosYMinimos[0]) {
+                    maximosYMinimos[0] = matriz[i][j].r;
 
                 }
+                #pragma omp section
+                if (matriz[i][j].r < maximosYMinimos[3]) {
+                    maximosYMinimos[3] = matriz[i][j].r;
 
+                }
+                #pragma omp section
+                if (matriz[i][j].g > maximosYMinimos[1]) {
+                    maximosYMinimos[1] = matriz[i][j].g;
+
+                }
+                #pragma omp section
+                if (matriz[i][j].g < maximosYMinimos[4]) {
+                    maximosYMinimos[4] = matriz[i][j].g;
+
+                }
+                #pragma omp section
+                if (matriz[i][j].b > maximosYMinimos[2]) {
+                    maximosYMinimos[2] = matriz[i][j].b;
+
+                }
+                #pragma omp section
+                if (matriz[i][j].b < maximosYMinimos[5]) {
+                    maximosYMinimos[5] = matriz[i][j].b;
+
+                }
             }
-
-
-            //cout << "-----------------------------------------\n";
-
-
-
 
 
         }
     }
 
+
     ofstream outputFile(rutaSalida);
+    if (!outputFile.is_open()) {
+        cerr << "El fichero de salida no se ha creado correctamente."
+                "Es posible que la ruta de salida no sea correcta." << endl;
+        exit(-1);
+    }
     outputFile << maximosYMinimos[0] << " " << maximosYMinimos[3] << " "
                << maximosYMinimos[1] << " " << maximosYMinimos[4] << " "
                << maximosYMinimos[2] << " " << maximosYMinimos[5];
 }
+*/
+
+void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
+    array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
+
+
+    for (int canal = 0; canal < 3; ++canal) {
+        #pragma omp parallel for collapse(2)
+        for (int i = 0; i < ALTURA; ++i) {
+            for (int j = 0; j < ANCHURA; ++j) {
+                switch (canal) {
+                    case 0:
+                        if (matriz[i][j].r > maximosYMinimos[0]) {
+                            maximosYMinimos[0] = matriz[i][j].r;
+                            break;
+                        }
+                        if (matriz[i][j].r < maximosYMinimos[3]) {
+                            maximosYMinimos[3] = matriz[i][j].r;
+                            break;
+                        }
+                        break;
+
+                    case 1:
+                        if (matriz[i][j].g > maximosYMinimos[1]) {
+                            maximosYMinimos[1] = matriz[i][j].g;
+                            break;
+                        }
+                        if (matriz[i][j].g < maximosYMinimos[4]) {
+                            maximosYMinimos[4] = matriz[i][j].g;
+                            break;
+                        }
+                        break;
+                    case 2:
+                        if (matriz[i][j].b > maximosYMinimos[2]) {
+                            maximosYMinimos[2] = matriz[i][j].b;
+                            break;
+                        }
+                        if (matriz[i][j].b < maximosYMinimos[5]) {
+                            maximosYMinimos[5] = matriz[i][j].b;
+                            break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    ofstream outputFile(rutaSalida);
+    if (!outputFile.is_open()) {
+        cerr << "El fichero de salida no se ha creado correctamente."
+                "Es posible que la ruta de salida no sea correcta." << endl;
+        exit(-1);
+    }
+    outputFile << maximosYMinimos[0] << " " << maximosYMinimos[3] << " "
+               << maximosYMinimos[1] << " " << maximosYMinimos[4] << " "
+               << maximosYMinimos[2] << " " << maximosYMinimos[5];
+}
+
 
 /**
  * Construye una matriz con los valores de los píxeles de la imagen transformados a escala de
@@ -309,12 +335,7 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
 
 void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
 
-
-//    double t1 = omp_get_wtime();
-//    auto start = std::chrono::high_resolution_clock::now();
-
-
-#pragma omp parallel for collapse(2)
+//#pragma omp parallel for collapse(2)
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
             imagen[i][j].r = imagen[i][j].r * mascara[i][j].r;
@@ -324,23 +345,7 @@ void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
         }
     }
 
-
-
-//    double t2 = omp_get_wtime();
-//    double diff= (t2 - t1)/pow(10,-6);
-//
-//    cout << diff/10;
-//    cout << endl;
-
-
-//    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-//    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-//    cout << "Tiempo transcurrido: " << microseconds/10 << " microsegundos\n";
-
     escribirSalida(imagen, rutaSalida);
-
-
-
 
 }
 
@@ -355,11 +360,14 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
 
     double radianes = grados * M_PI / 180;
 
+
     pixel **rotada = new pixel *[ALTURA];
+    #pragma omp parallel for
     for (int i = 0; i < ALTURA; i++) {
         rotada[i] = new pixel[ANCHURA];
     }
 
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
             rotada[i][j].r = 0;
@@ -368,13 +376,12 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
         }
     }
 
+    //#pragma omp parallel for collapse(2) private()
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
 
-
             coorXrotada = ceil((cos(radianes) * (j - colCentro) - sin(radianes) * (i - filaCentro)) + colCentro);
             coorYrotada = ceil((sin(radianes) * (j - colCentro) + cos(radianes) * (i - filaCentro)) + filaCentro);
-
 
             if (coorXrotada < 0 || coorXrotada > ANCHURA - 1 || coorYrotada < 0 || coorYrotada > ALTURA - 1) {
             } else {
@@ -390,8 +397,6 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
 }
 
 int main(int argv, char **argc) {
-//    auto start = std::chrono::high_resolution_clock::now();
-    double t1 = omp_get_wtime();
 
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
@@ -487,7 +492,9 @@ int main(int argv, char **argc) {
                 exit(-1);
             }
             try {
-                rotacion(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
+                for (int i = 0; i < 10 ; ++i) {
+                    rotacion(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
+                }
             } catch (const std::invalid_argument) {
                 cerr << "El parámetro indicado por -a tiene que ser un número decimal." << endl;
                 exit(-1);
@@ -514,16 +521,6 @@ int main(int argv, char **argc) {
             exit(-1);
     }
 
-//    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-//    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-//    cout << "Tiempo transcurrido: " << microseconds/10 << " microsegundos\n";
-//
-
-    double t2 = omp_get_wtime();
-    double diff= (t2 - t1)/pow(10,-6);
-
-    cout << diff/1;
-    cout << endl;
 
     return 0;
 }
