@@ -24,41 +24,6 @@ struct pixel {
 };
 
 
-void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
-    ofstream archivo(rutaSalida, ios::binary);
-    if (archivo.is_open()) {
-
-        unsigned char *buffer = new unsigned char[ALTURA * ANCHURA * 3];
-
-        archivo.write((char *) &ALTURA, 4);
-        archivo.write((char *) &ANCHURA, 4);
-
-        for (int channel = 0; channel < 3; channel++) {
-            for (int i = 0; i < ALTURA; ++i) {
-                for (int j = 0; j < ANCHURA; ++j) {
-                    switch (channel) {
-                        case 0:
-                            buffer[i * ANCHURA + j] = matrizPixeles[i][j].r;
-                            break;
-                        case 1:
-                            buffer[i * ANCHURA + j + ALTURA * ANCHURA] = matrizPixeles[i][j].g;
-                            break;
-                        case 2:
-                            buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
-                            break;
-                    }
-
-                }
-            }
-        }
-        archivo.write((const char *) buffer, ALTURA * ANCHURA * 3);
-        archivo.close();
-    } else {
-        cerr << "El fichero de salida no se ha creado correctamente." << endl;
-        exit(-1);
-    }
-}
-
 /**
  * Método que lee el archivo de imagen de entrada y vierte los primeros dos grupos de
  * 4 bytes en las variables globales ALTURA y ANCHURA respectivamente. El resto del fichero
@@ -81,12 +46,10 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
 
         struct stat st;
         stat(rutaEntrada, &st);
-
-
         int fileSize = (int) st.st_size;
-
         if (fileSize != ALTURA * ANCHURA * 3 + 8) {
-            cerr << "El formato del fichero no es correcto" << endl;
+            cerr << "El fichero de entrada no tiene un formato correcto." << endl;
+            exit(-1);
         }
 
         char *buffer = new char[fileSize - 8];
@@ -122,45 +85,104 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
     return matrizPixeles;
 }
 
+void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
+    ofstream archivo(rutaSalida, ios::binary);
+    if (archivo.is_open()) {
+
+        unsigned char *buffer = new unsigned char[ALTURA * ANCHURA * 3];
+
+        archivo.write((char *) &ALTURA, 4);
+        archivo.write((char *) &ANCHURA, 4);
+
+        for (int channel = 0; channel < 3; channel++) {
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    switch (channel) {
+                        case 0:
+                            buffer[i * ANCHURA + j] = matrizPixeles[i][j].r;
+                            break;
+                        case 1:
+                            buffer[i * ANCHURA + j + ALTURA * ANCHURA] = matrizPixeles[i][j].g;
+                            break;
+                        case 2:
+                            buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
+                            break;
+                    }
+
+                }
+            }
+        }
+        archivo.write((const char *) buffer, ALTURA * ANCHURA * 3);
+        archivo.close();
+    } else {
+        cerr << "El fichero de salida no se ha creado correctamente."
+                "Es posible que la ruta de salida no sea correcta." << endl;
+        exit(-1);
+    }
+}
+
 
 /**
  * Escribe en un archivo los valores máximos y mínimos de todas las matrices de colores, en el
  * orden de Rojo, Verde y Azul.
  * Se crea un array de tamaño 6 que contiene en sus primeras 3 posiciones los valores máximos de
- * las tres matrices y en sus siguientes 3 posiciones los valores mínimos.
- * @param matrizR
- * @param matrizG
- * @param matrizB
+ * las tres matrices y en sus siguientes 3 posiciones los valores mínimos. Recorre los tres canales
+ * de color RGB, comparando los valores leídos con los anteriores valores máximos y mínimos,
+ * actualizándolos si es necesario.
+ * @param matriz Matriz de píxeles que se corresponde con la imagen a analizar
  * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
 
 void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
+    for (int canal = 0; canal < 3; ++canal) {
+        for (int i = 0; i < ALTURA; ++i) {
+            for (int j = 0; j < ANCHURA; ++j) {
+                switch (canal) {
+                    case 0:
+                        if (matriz[i][j].r > maximosYMinimos[0]) {
+                            maximosYMinimos[0] = matriz[i][j].r;
+                            break;
+                        }
+                        if (matriz[i][j].r < maximosYMinimos[3]) {
+                            maximosYMinimos[3] = matriz[i][j].r;
+                            break;
+                        }
+                        break;
 
-            if (matriz[i][j].r > maximosYMinimos[0]) {
-                maximosYMinimos[0] = matriz[i][j].r;
-            }
-            if (matriz[i][j].g > maximosYMinimos[1]) {
-                maximosYMinimos[1] = matriz[i][j].g;
-            }
-            if (matriz[i][j].b > maximosYMinimos[2]) {
-                maximosYMinimos[2] = matriz[i][j].b;
-            }
-            if (matriz[i][j].r < maximosYMinimos[3]) {
-                maximosYMinimos[3] = matriz[i][j].r;
-            }
-            if (matriz[i][j].g < maximosYMinimos[4]) {
-                maximosYMinimos[4] = matriz[i][j].g;
-            }
-            if (matriz[i][j].b < maximosYMinimos[5]) {
-                maximosYMinimos[5] = matriz[i][j].b;
+                    case 1:
+                        if (matriz[i][j].g > maximosYMinimos[1]) {
+                            maximosYMinimos[1] = matriz[i][j].g;
+                            break;
+                        }
+                        if (matriz[i][j].g < maximosYMinimos[4]) {
+                            maximosYMinimos[4] = matriz[i][j].g;
+                            break;
+                        }
+                        break;
+                    case 2:
+                        if (matriz[i][j].b > maximosYMinimos[2]) {
+                            maximosYMinimos[2] = matriz[i][j].b;
+                            break;
+                        }
+                        if (matriz[i][j].b < maximosYMinimos[5]) {
+                            maximosYMinimos[5] = matriz[i][j].b;
+                            break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
 
     ofstream outputFile(rutaSalida);
+    if (!outputFile.is_open()) {
+        cerr << "El fichero de salida no se ha creado correctamente."
+                "Es posible que la ruta de salida no sea correcta." << endl;
+        exit(-1);
+    }
     outputFile << maximosYMinimos[0] << " " << maximosYMinimos[3] << " "
                << maximosYMinimos[1] << " " << maximosYMinimos[4] << " "
                << maximosYMinimos[2] << " " << maximosYMinimos[5];
@@ -175,17 +197,15 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
  * @return
  */
 void histograma(pixel **matriz, char *rutaSalida, int tramos) {
-    auto start = std::chrono::high_resolution_clock::now();
-
     vector<int> result(tramos);
     double grises;
-    double valoresTramo= 256 / (double) tramos;
+    double valoresTramo = 256 / (double) tramos;
 
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
             grises = matriz[i][j].r * 0.3 + matriz[i][j].g * 0.59 + matriz[i][j].b * 0.11;
-            for(int contador= 0; contador<tramos; contador++){
+            for (int contador = 0; contador < tramos; contador++) {
                 if (grises >= contador * valoresTramo &&
                     grises < (contador + 1) * valoresTramo) {
                     result[contador] = result[contador] + 1;
@@ -196,7 +216,11 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
     }
 
     ofstream outputFile(rutaSalida);
-
+    if (!outputFile.is_open()) {
+        cerr << "El fichero de salida no se ha creado correctamente."
+                "Es posible que la ruta de salida no sea correcta." << endl;
+        exit(-1);
+    }
 
     for (int i = 0; i < tramos; ++i) {
         outputFile << result[i];
@@ -204,12 +228,6 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
             outputFile << " ";
         }
     }
-
-    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Tiempo total transcurrido escalaGrises: " << microseconds << " microsegundos\n";
-
-
 }
 
 /**
@@ -309,7 +327,14 @@ int main(int argv, char **argc) {
                 i++;
                 continue;
             } catch (const std::invalid_argument) {
-                cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4." << endl;
+                cerr << "No se ha especificado correctamente la acción a realizar. "
+                        "Inserte el parámetro -u seguido de la acción a realizar, "
+                        "utilizando valores entre 0 - 4" << endl
+                     << "0: Histograma blanco y negro." << endl
+                     << "1: Máximos y Mínimos." << endl
+                     << "2: Aplicación de máscara." << endl
+                     << "3: Rotación de imagen." << endl
+                     << "4: Filtro blanco y negro." << endl;;
                 exit(-1);
             }
         }
@@ -356,9 +381,9 @@ int main(int argv, char **argc) {
             }
 
             try {
-                histograma(generarMatrizPixeles(rutaEntrada),rutaSalida, stoi(parametroExtra));
+                histograma(generarMatrizPixeles(rutaEntrada), rutaSalida, stoi(parametroExtra));
             } catch (const std::invalid_argument) {
-                cerr << "El parámetro indicado por -t tiene que ser un número entero." << endl;
+                cerr << "El parámetro indicado por -t tiene que ser un NÚMERO ENTERO." << endl;
                 exit(-1);
             }
             break;
@@ -387,7 +412,7 @@ int main(int argv, char **argc) {
             try {
                 rotacion(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             } catch (const std::invalid_argument) {
-                cerr << "El parámetro indicado por -a tiene que ser un número decimal." << endl;
+                cerr << "El parámetro indicado por -a tiene que ser un NÚMERO DECIMAL." << endl;
                 exit(-1);
             }
             break;
@@ -400,15 +425,26 @@ int main(int argv, char **argc) {
                 exit(-1);
             }
             try {
+                if (stod(parametroExtra) < 0) {
+                    cerr << "El parámetro indicado por -r tiene que ser un número decimal POSITIVO." << endl;
+                    exit(-1);
+                }
                 filtroBN(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
             } catch (const std::invalid_argument) {
-                cerr << "El parámetro indicado por -r tiene que ser un número decimal." << endl;
+                cerr << "El parámetro indicado por -r tiene que ser un NÚMERO DECIMAL positivo." << endl;
                 exit(-1);
             }
             break;
         }
         default:
-            cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4.";
+            cerr << "No se ha especificado la acción a realizar. "
+                    "Inserte el parámetro -u seguido de la acción a realizar, "
+                    "utilizando VALORES ENTRE 0 - 4:" << endl
+                 << "0: Histograma blanco y negro." << endl
+                 << "1: Máximos y Mínimos." << endl
+                 << "2: Aplicación de máscara." << endl
+                 << "3: Rotación de imagen." << endl
+                 << "4: Filtro blanco y negro." << endl;
             exit(-1);
     }
     auto elapsed = std::chrono::high_resolution_clock::now() - start;
