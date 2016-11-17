@@ -33,8 +33,27 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
         archivo.write((char *) &ALTURA, 4);
         archivo.write((char *) &ANCHURA, 4);
 
+        /**
+         * ----------------------- PARALELIZACIÓN DE BUCLES -----------------------
+         * SCHEDULE: controla cómo se reparten las iteraciones entre los diferentes
+         * hilos. Dos tipos de schedule:
+         *
+         * - static (por defecto): a cada hilo se le asigna una cantidad fija (chunks)
+         *   de iteraciones. Se hace en la compilación. Bueno si no varía la carga de
+         *   trabajo de cada hilo.
+         *
+         * - dynamic: estilo FIFO. Cada hilo realiza 'chunks' de iteraciones hasta que
+         *   todas se hayan acabado --> los hilos más rápidos realizarán más iteraciones.
+         *   Se hace en tiempo de ejecución --> Añade excesos de computación indirecta.
+         *   Bueno si la carga de trabajo de cada hilo varía.
+         *
+         * COLLAPSE(N): Especifica cuántos bucles (N), a partir de la cláusula, dentro
+         * de un bucle anidado deben 'colapsar' en un solo espacio de iteracion y divididos
+         * respecto al tipo de SCHEDULE indicado.
+         */
+
         for (int channel = 0; channel < 3; channel++) {
-            #pragma omp parallel for collapse(2)
+        #pragma omp parallel for collapse(2)
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     switch (channel) {
@@ -97,7 +116,7 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
 
 
         for (int channel = 0; channel < 3; channel++) {
-            #pragma omp parallel for collapse(2)
+        #pragma omp parallel for collapse(2)
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     if (!archivo.eof()) {
@@ -225,9 +244,11 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
  * @param radio Radio del círculo dentro del cual no se aplicará el filtro
  * */
 void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
+    double t1 = omp_get_wtime();
     int centroX = ANCHURA / 2;
     int centroY = ALTURA / 2;
 
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ALTURA; ++j) {
             double suma = pow(i - centroY, 2) + pow(j - centroX, 2);
@@ -239,44 +260,26 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
         }
 
     }
+    double t2 = omp_get_wtime();
+    double diff = (t2-t1)*pow(10,3);
+    cout << "Tiempo transcurrido: " << diff << " milisegundos" << endl;
+    /**
+     * ---- TIEMPOS MEDIDOS ----
+     * ~38 milisegundos secuencial
+     * ~18 milisegundos paralela (-52.6%)
+     */
     escribirSalida(matriz, rutaSalida);
 }
 
 void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
-
-
-//    double t1 = omp_get_wtime();
-//    auto start = std::chrono::high_resolution_clock::now();
-
-
-    #pragma omp parallel for collapse(2)
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
             imagen[i][j].r = imagen[i][j].r * mascara[i][j].r;
             imagen[i][j].g = imagen[i][j].g * mascara[i][j].g;
             imagen[i][j].b = imagen[i][j].b * mascara[i][j].b;
-            //printf("%d %d %d\n", i, j, omp_get_thread_num());
         }
     }
-
-
-
-//    double t2 = omp_get_wtime();
-//    double diff= (t2 - t1)/pow(10,-6);
-//
-//    cout << diff/10;
-//    cout << endl;
-
-
-//    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-//    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-//    cout << "Tiempo transcurrido: " << microseconds/10 << " microsegundos\n";
-
     escribirSalida(imagen, rutaSalida);
-
-
-
-
 }
 
 void rotacion(pixel **imagen, double grados, char *rutaSalida) {
@@ -325,9 +328,6 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
 }
 
 int main(int argv, char **argc) {
-//    auto start = std::chrono::high_resolution_clock::now();
-    double t1 = omp_get_wtime();
-
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
@@ -405,10 +405,7 @@ int main(int argv, char **argc) {
                      << endl;
                 exit(-1);
             }
-            for (int i = 0; i < 10 ; ++i) {
-                mascara(generarMatrizPixeles(rutaEntrada), generarMatrizPixeles(parametroExtra), rutaSalida);
-            }
-
+            mascara(generarMatrizPixeles(rutaEntrada), generarMatrizPixeles(parametroExtra), rutaSalida);
             break;
         }
         case 3: {
@@ -445,17 +442,5 @@ int main(int argv, char **argc) {
             cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4.";
             exit(-1);
     }
-
-//    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-//    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-//    cout << "Tiempo transcurrido: " << microseconds/10 << " microsegundos\n";
-//
-
-    double t2 = omp_get_wtime();
-    double diff= (t2 - t1)/pow(10,-6);
-
-    cout << diff/10;
-    cout << endl;
-
     return 0;
 }
