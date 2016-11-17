@@ -72,19 +72,18 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
         for (int canal = 0; canal < 3; canal++) {
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
-                    if (!archivo.eof()) {
-                        switch (canal) {
-                            case 0:
-                                matrizPixeles[i][j].r = (unsigned char) buffer[i * ANCHURA + j];
-                                break;
-                            case 1:
-                                matrizPixeles[i][j].g = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA];
-                                break;
-                            case 2:
-                                matrizPixeles[i][j].b = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA * 2];
-                                break;
-                            default:break;
-                        }
+                    switch (canal) {
+                        case 0:
+                            matrizPixeles[i][j].r = (unsigned char) buffer[i * ANCHURA + j];
+                            break;
+                        case 1:
+                            matrizPixeles[i][j].g = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA];
+                            break;
+                        case 2:
+                            matrizPixeles[i][j].b = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA * 2];
+                            break;
+                        default:
+                            break;
                     }
                 }
             }
@@ -97,6 +96,15 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
     return matrizPixeles;
 }
 
+/**
+ * Método que escribe en un fichero binario la matriz de píxeles recibida por parámetros.
+ * La escritura comienza escribiendo las variables globales ALTURA y ANCHURA, para después recorrer los canales
+ * de la matriz de píxeles guardando en una cadena de caracteres los colores uno detrás de otro. Esta cadena será
+ * escrita en la ruta pasada por parámetros, creando el fichero si no existe.
+ * Se comprueba que el archivo se ha creado correctamente antes de intentar escribir en él.
+ * @param matrizPixeles Matriz que será escrita en el archivo binario.
+ * @param rutaSalida Ruta del archivo binario que será escrito.
+ */
 void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
     ofstream archivo(rutaSalida, ios::binary);
     if (archivo.is_open()) {
@@ -118,7 +126,8 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
                         case 2:
                             buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
                             break;
-                        default:break;
+                        default:
+                            break;
                     }
                 }
             }
@@ -245,7 +254,7 @@ void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
                     }
                 }
             } else {
-                for (int contador = tramos/2; contador < tramos; contador++) {
+                for (int contador = tramos / 2; contador < tramos; contador++) {
                     if (grises >= contador * valoresTramo &&
                         grises < (contador + 1) * valoresTramo) {
                         result[contador] = result[contador] + 1;
@@ -294,10 +303,10 @@ void filtroBN(pixel **matrizPixeles, double radio, char *rutaSalida) {
                 matrizPixeles[i][j].b = (unsigned char) (matrizPixeles[i][j].b * 0.11);
             }
         }
-
     }
     escribirSalida(matrizPixeles, rutaSalida);
 }
+
 /**
  * Aplica una mascara a la imagen de entrada.
  *
@@ -349,8 +358,8 @@ void mascara(pixel **matrizPixeles, pixel **matrizMascara, char *rutaSalida) {
 void rotacion(pixel **matrizPixeles, double grados, char *rutaSalida) {
     double filaCentro = ALTURA / 2;
     double colCentro = ANCHURA / 2;
-    int coorXrotada=0;
-    int coorYrotada=0;
+    int coorXrotada = 0;
+    int coorYrotada = 0;
     double radianes = grados * M_PI / 180;
 
     pixel **rotada = new pixel *[ALTURA]();
@@ -365,7 +374,7 @@ void rotacion(pixel **matrizPixeles, double grados, char *rutaSalida) {
             coorYrotada = (int) ceil((sin(radianes) * (j - colCentro) + cos(radianes) * (i - filaCentro)) + filaCentro);
 
             if (coorXrotada >= 0 && coorXrotada <= ANCHURA - 1 && coorYrotada >= 0 && coorYrotada <= ALTURA - 1) {
-                rotada[coorYrotada][coorXrotada]= matrizPixeles[i][j];
+                rotada[coorYrotada][coorXrotada] = matrizPixeles[i][j];
             }
         }
     }
