@@ -203,12 +203,24 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
 }
 
 /**
- * Construye una matriz con los valores de los píxeles de la imagen transformados a escala de
- * grises necesaria por parámetro para la función histograma()
- * @param rojo
- * @param verde
- * @param azul
- * @return
+ *La función histograma recibe como parametros una matriz de estrucutras pixel que contiene la imagen sobre la que se tiene
+ * que realizar el histograma, una ruta a un fichero en el que se escribirá el histograma y el número de tramos que deberá tener.
+ *
+ * Primero se comprueba que el número de tramos pasado como parametro es mayor que 0. Despueés se crea un array donde se almacenará
+ * el histograma, se calcula el rango de valores que tendrá cada tramo y el valor medio del histograma.
+ *
+ * En segundo lugar se recorre la matriz de pixeles para transformarla a escala de grises, y se coloca cada valor en el tramo
+ * correspondiente. Para ello, primero se comprueba si el valor en escala de grises es mayor o menor que el valor medio del
+ * histograma. Una vez que se realiza esta comprobación, se compara el valor en escala de grises con los valores extremos de
+ * cada tramo. En caso de que el valor se encuentre entre estos dos extremos, significa que está contenido en ese tramo, y se
+ * suma 1 al número de valores que hay en ese tramo.
+ *
+ * Por último, se escribe el array resultante en el fichero de salida, especifcado como parametro,que contiene
+ * el histograma completo.
+ *
+ * @param matrizPixeles
+ * @param rutaSalida
+ * @param tramos
  */
 void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
     if (tramos <= 0) {
