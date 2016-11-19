@@ -157,7 +157,6 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
  */
 
 void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
-    auto start = std::chrono::high_resolution_clock::now();
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
 #pragma omp parallel
     {
@@ -207,9 +206,6 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
                << maximosYMinimos[2] << " " << maximosYMinimos[5];
 
     delete[] matrizPixeles;
-    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Tiempo transcurrido: " << microseconds << " microsegundos\n";
 }
 
 /**
@@ -352,12 +348,14 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
 }
 
 int main(int argv, char **argc) {
+    auto start = std::chrono::high_resolution_clock::now();
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
     char *parametroLetra = NULL;
     int ejecucion = -1;
     for (int i = 1; i < argv; ++i) {
+        cout << omp_get_thread_num() << endl;
         if (strcmp(argc[i], "-u") == 0) {
             try {
                 ejecucion = stoi(argc[i + 1]);
@@ -386,6 +384,9 @@ int main(int argv, char **argc) {
             continue;
         }
     }
+    auto elapsed = std::chrono::high_resolution_clock::now() - start;
+    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    cout << "Tiempo transcurrido: " << microseconds << " microsegundos\n";
 
     if (rutaEntrada == NULL) {
         cerr << "No se ha especificado el fichero de entrada. Inserte el parámetro -i seguido de la ruta." << endl;
@@ -466,6 +467,5 @@ int main(int argv, char **argc) {
             cerr << "El parámetro que indica la acción no es correcto. Insertar valores entre 0 - 4.";
             exit(-1);
     }
-
     return 0;
 }

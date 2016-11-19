@@ -156,7 +156,6 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
  */
 
 void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
-    auto start = std::chrono::high_resolution_clock::now();
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
@@ -207,9 +206,6 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
                << maximosYMinimos[2] << " " << maximosYMinimos[5];
 
     delete[] matrizPixeles;
-    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Tiempo transcurrido: " << microseconds << " microsegundos\n";
 }
 
 /**
@@ -239,30 +235,13 @@ void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
     }
     vector<int> result(tramos);
     double grises;
-    double valoresTramo = 256 / (double) tramos;
-    double m = (tramos / 2) * valoresTramo;
+    double intervaloSize = 256 / (double) tramos;
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
             grises = matrizPixeles[i][j].r * 0.3 + matrizPixeles[i][j].g * 0.59 + matrizPixeles[i][j].b * 0.11;
-
-            if (grises < m) {
-                for (int contador = 0; contador < tramos; contador++) {
-                    if (grises >= contador * valoresTramo &&
-                        grises < (contador + 1) * valoresTramo) {
-                        result[contador] = result[contador] + 1;
-                        break;
-                    }
-                }
-            } else {
-                for (int contador = tramos / 2; contador < tramos; contador++) {
-                    if (grises >= contador * valoresTramo &&
-                        grises < (contador + 1) * valoresTramo) {
-                        result[contador] = result[contador] + 1;
-                        break;
-                    }
-                }
-            }
+            int intervalo = (int) floor(grises / intervaloSize);
+            result[intervalo] +=1;
         }
     }
 
