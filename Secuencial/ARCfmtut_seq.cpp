@@ -28,6 +28,10 @@ struct pixel {
  * 4 bytes en las variables globales ALTURA y ANCHURA respectivamente. El resto del fichero
  * se vierte en una matriz de estructuras tipo pixel {r, g, b} en su atributo de canal
  * correspondiente.
+ * En el caso de que la lectura sea llamada por la función máscara, se comprueba que el tamaño
+ * de la imagen de máscara es igual al de la imagen fuente.
+ * También se comprueba que el tamaño de la imagen pasada por parámetros se corresponde con los
+ * valores de altura y anchura ubicados en los 8 primeros bytes del archivo binario.
  *
  * @param rutaEntrada Indica la ruta del archivo de entrada a leer.
  */
@@ -218,18 +222,17 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
  * con la que aparecen los valores en la imagen.
  * Por último, se escribe el array resultante en el fichero de salida, que contiene el histograma completo.
  *
- * @param matrizPixeles Matriz de estructuras pixel que contiene la imagen sobre la que se tiene que realizar el
- * histograma
- * @param rutaSalida Ruta del fichero en el que se escribirá el histograma
+ * @param matrizPixeles Matriz de píxeles que se corresponde con la imagen a analizar
+ * @param rutaSalida Archivo en el que se escribirá el resultado.
  * @param tramos Número de tramos que deberá tener el histograma
  */
 void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
     if (tramos <= 0) {
-        cerr << "El número de tramos debería ser mayor que 0.";
+        cerr << "El número de tramos debe ser mayor que 0.";
         exit(-1);
     }
     vector<int> histograma(tramos);
-    double grises;
+    double grises = 0;
     double rangoIntervalo = 256 / (double) tramos;
 
     for (int i = 0; i < ALTURA; i++) {
@@ -257,14 +260,13 @@ void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
 }
 
 /**
- * Aplica un filtro blanco y negro a las regiones de la imagen que quedan fuera del circulo de
- * radio indicado por parámetro y con centro en el centro de la imagen. Las regiones dentro del
- * círculo quedan igual.
- * @param matrizR
- * @param matrizG
- * @param matrizB
- * @param radio Radio del círculo dentro del cual no se aplicará el filtro
- * */
+ * Aplica un filtro blanco y negro a las regiones de la imagen que quedan fuera del circulo cuyo
+ * radio se indica por parámetros y cuyo centro se corresponde con en el centro de la imagen. Las regiones
+ * dentro del círculo quedan igual.
+ * @param matrizPixeles Matriz de píxeles que se corresponde con la imagen a analizar.
+ * @param radio Radio del filtro.
+ * @param rutaSalida Archivo en el que se escribirá el resultado.
+ */
 void filtroBN(pixel **matrizPixeles, double radio, char *rutaSalida) {
     int centroX = ANCHURA / 2;
     int centroY = ALTURA / 2;
@@ -283,16 +285,14 @@ void filtroBN(pixel **matrizPixeles, double radio, char *rutaSalida) {
 }
 
 /**
- * Aplica una mascara a la imagen de entrada.
+ * Método que aplica una mascara a la imagen de entrada.
+ * En esta función se recorre la matriz de la imagen de entrada multiplicando cada valor RGB de cada píxel
+ * de la matriz fuente por el valor RGB correspondiente de la matriz mascara.
+ * El resultado se escribe en el fichero de salida.
  *
- * En esta función se recorre la matriz de la imagen de entrada ("imagen") con dos bucles for anidados multiplicando
- * cada valor RGB de cada píxel de la matriz "imagen" por el valor RGB correspondiente de la matriz "mascara".
- *
- * El resultado se escribe en un fichero de salida llamando a la función "escribirSalida"
- *
- * @param matrizPixeles
- * @param mascara
- * @param rutaSalida
+ * @param matrizPixeles Matriz de píxeles que se corresponde con la imagen a analizar.
+ * @param matrizMascara Matriz de píxeles que se corresponde con la máscara a aplicar.
+ * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
 
 void mascara(pixel **matrizPixeles, pixel **matrizMascara, char *rutaSalida) {
@@ -308,26 +308,21 @@ void mascara(pixel **matrizPixeles, pixel **matrizMascara, char *rutaSalida) {
 }
 
 /**
- * Rota la imagen un número de grados indicado por parámetro.
- *
+ * Método que rota la imagen insertada por parámetros un número de grados indicado.
  * La rotación se realiza tomando como centro de la rotación el centro de la imagen.
- *
- * Para poder llevar a cabo la función se crea una matriz auxiliar llamada "rotada" que es la
- * matriz en la que se irán colocando los píxeles una vez han sido rotados.
- *
+ * Para poder llevar a cabo la función se crea una matriz auxiliar llamada "rotada" que es la matriz en la que se
+ * irán colocando los píxeles una vez han sido rotados.
  * Para cambiar los píxeles de la matriz original a la matriz auxiliar se recorre la matriz original y en cada iteración
- * se calcula la posición a la que se va a rotar el pixel ("coorXrotada" y "coorYrotada").
- * Para calcularla se aplica la ecuación de rotación correpondiente a cada coordenada en la que i-filaCentro y j-colCentro hacen
- * referencia a la posición del píxel con respecto al centro de la imagen.
- *
+ * se calcula la posición a la que se va a rotar el pixel.
+ * Para calcularla se aplica la ecuación de rotación correpondiente a cada coordenada en la que i-filaCentro y
+ * j-colCentro hacen referencia a la posición del píxel con respecto al centro de la imagen.
  * Una vez calculada la posición que va a ocupar el píxel en la nueva matriz se comprueba si se sale del rango de
- * la matriz con un if. Si no se sale entonces se introduce el pixel en la matriz auxiliar.
- *
+ * la matriz. Si no se sale entonces se introduce el pixel en la matriz auxiliar.
  * Una vez se ha llenado la matriz auxiliar se llama a la función "escribirSalida" para que la escriba en un fichero de salida.
  *
- * @param matrizPixeles
+ * @param matrizPixeles Matriz de píxeles que se corresponde con la imagen a analizar.
  * @param grados
- * @param rutaSalida
+ * @param rutaSalida Archivo en el que se escribirá el resultado.
  * */
 
 void rotacion(pixel **matrizPixeles, double grados, char *rutaSalida) {
