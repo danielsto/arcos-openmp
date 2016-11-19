@@ -294,7 +294,6 @@ void filtroBN(pixel **matrizPixeles, double radio, char *rutaSalida) {
  * @param matrizMascara Matriz de píxeles que se corresponde con la máscara a aplicar.
  * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
-
 void mascara(pixel **matrizPixeles, pixel **matrizMascara, char *rutaSalida) {
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
