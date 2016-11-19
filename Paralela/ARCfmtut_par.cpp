@@ -288,13 +288,17 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
  * @param rutaSalida
  */
 void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
+
+#pragma omp parallel for
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
-            imagen[i][j].r *= mascara[i][j].r;
-            imagen[i][j].g *= mascara[i][j].g;
-            imagen[i][j].b *= mascara[i][j].b;
+            imagen[i][j].r = imagen[i][j].r * mascara[i][j].r;
+            imagen[i][j].g = imagen[i][j].g * mascara[i][j].g;
+            imagen[i][j].b = imagen[i][j].b * mascara[i][j].b;
+
         }
     }
+
     escribirSalida(imagen, rutaSalida);
 }
 
@@ -344,14 +348,12 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
 }
 
 int main(int argv, char **argc) {
-    auto start = std::chrono::high_resolution_clock::now();
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
     char *parametroLetra = NULL;
     int ejecucion = -1;
     for (int i = 1; i < argv; ++i) {
-        cout << omp_get_thread_num() << endl;
         if (strcmp(argc[i], "-u") == 0) {
             try {
                 ejecucion = stoi(argc[i + 1]);
@@ -380,9 +382,6 @@ int main(int argv, char **argc) {
             continue;
         }
     }
-    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Tiempo transcurrido: " << microseconds << " microsegundos\n";
 
     if (rutaEntrada == NULL) {
         cerr << "No se ha especificado el fichero de entrada. Inserte el parámetro -i seguido de la ruta." << endl;
