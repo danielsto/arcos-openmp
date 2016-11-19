@@ -12,6 +12,7 @@
 #include <math.h>
 #include <sys/stat.h>
 
+
 using namespace std;
 
 int ALTURA;
@@ -292,38 +293,59 @@ void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
  * @param azul
  * @return
  */
-void histograma(pixel **matriz, char *rutaSalida, int tramos) {
 
-    vector<int> result(tramos);
-    double grises;
-    double valoresTramo= 256 / (double) tramos;
+void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
 
+    //t1 = t1 + omp_get_wtime();
+    if (tramos <= 0) {
+        cerr << "El número de tramos debería ser mayor que 0.";
+        exit(-1);
+    }
 
-    for (int i = 0; i < ALTURA; i++) {
-        for (int j = 0; j < ANCHURA; j++) {
-            grises = matriz[i][j].r * 0.3 + matriz[i][j].g * 0.59 + matriz[i][j].b * 0.11;
-            for(int contador= 0; contador<tramos; contador++){
-                if (grises >= contador * valoresTramo &&
-                    grises < (contador + 1) * valoresTramo) {
-                    result[contador] = result[contador] + 1;
-                    break;
-                }
+    vector<int> histogramaFinal(tramos);
+    double grises = 0;
+    double intervaloSize = 256 / (double) tramos;
+
+    vector<int *> arrayHistogramasPrivados(omp_get_max_threads());
+    #pragma omp parallel
+    {
+        int hilos = omp_get_num_threads();
+        vector<int> histogramaPrivadoHilo(tramos);
+        arrayHistogramasPrivados[omp_get_thread_num()] = histogramaPrivadoHilo.data();
+
+        #pragma omp for
+        for (int i = 0; i < ALTURA; i++) {
+            for (int j = 0; j < ANCHURA; j++) {
+                grises = matrizPixeles[i][j].r * 0.3 + matrizPixeles[i][j].g * 0.59 + matrizPixeles[i][j].b * 0.11;
+                int intervalo = (int) floor(grises / intervaloSize);
+                histogramaPrivadoHilo[intervalo] += 1;
+            }
+        }
+        #pragma omp for
+            for (int j = 0; j < hilos; ++j) {
+                for (int i = 0; i < tramos; ++i) {
+                histogramaFinal[i] += arrayHistogramasPrivados[j][i];
             }
         }
     }
-
-    ofstream outputFile(rutaSalida);
-
-
-    for (int i = 0; i < tramos; ++i) {
-        outputFile << result[i];
-        if (i != tramos - 1) {
-            outputFile << " ";
+        ofstream outputFile(rutaSalida);
+        if (!outputFile.is_open()) {
+            cerr << "El fichero de salida no se ha creado correctamente."
+                    "Es posible que la ruta de salida no sea correcta." << endl;
+            exit(-1);
         }
-    }
 
-
+        for (int i = 0; i < tramos; ++i) {
+            outputFile << histogramaFinal[i];
+            if (i != tramos - 1) {
+                outputFile << " ";
+            }
+        }
+        delete[] matrizPixeles;
+        //t2 = t2 + omp_get_wtime();
 }
+
+
 
 /**
  * Aplica un filtro blanco y negro a las regiones de la imagen que quedan fuera del circulo de
@@ -365,20 +387,19 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
  */
 void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
 
+    //t1 = t1 + omp_get_wtime();
 
-//    t1 = t1 + omp_get_wtime();
-
-    #pragma omp parallel for collapse(2)
+    #pragma omp parallel for
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
             imagen[i][j].r = imagen[i][j].r * mascara[i][j].r;
             imagen[i][j].g = imagen[i][j].g * mascara[i][j].g;
             imagen[i][j].b = imagen[i][j].b * mascara[i][j].b;
-            //printf("%d %d %d\n", i, j, omp_get_thread_num());
+
         }
     }
 
-//    t2 = t2 +omp_get_wtime();
+    //t2 = t2 +omp_get_wtime();
 
     escribirSalida(imagen, rutaSalida);
 
