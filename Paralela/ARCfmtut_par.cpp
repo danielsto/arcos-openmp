@@ -396,7 +396,7 @@ int main(int argv, char **argc) {
                      << "1: Máximos y Mínimos." << endl
                      << "2: Aplicación de máscara." << endl
                      << "3: Rotación de imagen." << endl
-                     << "4: Filtro blanco y negro." << endl;;
+                     << "4: Filtro blanco y negro." << endl;
                 exit(-1);
             }
         }
