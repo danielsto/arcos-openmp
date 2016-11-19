@@ -33,25 +33,29 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
         archivo.write((char *) &ALTURA, 4);
         archivo.write((char *) &ANCHURA, 4);
 
-        for (int channel = 0; channel < 3; channel++) {
-#pragma omp parallel for collapse(2)
+#pragma omp parallel
+        {
+#pragma omp for collapse(2)
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
-                    switch (channel) {
-                        case 0:
-                            buffer[i * ANCHURA + j] = matrizPixeles[i][j].r;
-                            break;
-                        case 1:
-                            buffer[i * ANCHURA + j + ALTURA * ANCHURA] = matrizPixeles[i][j].g;
-                            break;
-                        case 2:
-                            buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
-                            break;
-                    }
+                    buffer[i * ANCHURA + j] = matrizPixeles[i][j].r;
+                }
+            }
+#pragma omp for collapse(2)
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    buffer[i * ANCHURA + j + ALTURA * ANCHURA] = matrizPixeles[i][j].g;
 
                 }
             }
+#pragma omp for collapse(2)
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
+                }
+            }
         }
+
         archivo.write((const char *) buffer, ALTURA * ANCHURA * 3);
         archivo.close();
     } else {
@@ -96,26 +100,29 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
         archivo.read(buffer, fileSize - 8);
 
 
-        for (int channel = 0; channel < 3; channel++) {
-#pragma omp parallel for collapse(2)
+#pragma omp parallel
+        {
+#pragma omp for
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
-                    if (!archivo.eof()) {
-                        switch (channel) {
-                            case 0:
-                                matrizPixeles[i][j].r = (unsigned char) buffer[i * ANCHURA + j];
-                                break;
-                            case 1:
-                                matrizPixeles[i][j].g = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA];
-                                break;
-                            case 2:
-                                matrizPixeles[i][j].b = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA * 2];
-                                break;
-                        }
-                    }
+                    matrizPixeles[i][j].r = (unsigned char) buffer[i * ANCHURA + j];
+                }
+            }
+#pragma omp for
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    matrizPixeles[i][j].g = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA];
+
+                }
+            }
+#pragma omp for
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    matrizPixeles[i][j].b = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA * 2];
                 }
             }
         }
+
 
         archivo.close();
     } else {
@@ -245,7 +252,6 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
  * @param radio Radio del círculo dentro del cual no se aplicará el filtro
  * */
 void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
-    double t1 = omp_get_wtime();
     int centroX = ANCHURA / 2;
     int centroY = ALTURA / 2;
 
@@ -261,14 +267,6 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
         }
 
     }
-    double t2 = omp_get_wtime();
-    double diff = (t2 - t1) * pow(10, 3);
-    cout << "Tiempo transcurrido: " << diff << " milisegundos" << endl;
-    /**
-     * ---- TIEMPOS MEDIDOS ----
-     * ~38 milisegundos secuencial
-     * ~18 milisegundos paralela (-52.6%)
-     */
     escribirSalida(matriz, rutaSalida);
 }
 
