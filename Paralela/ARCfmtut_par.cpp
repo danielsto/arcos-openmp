@@ -33,25 +33,6 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
         archivo.write((char *) &ALTURA, 4);
         archivo.write((char *) &ANCHURA, 4);
 
-        /**
-         * ----------------------- PARALELIZACIÓN DE BUCLES -----------------------
-         * SCHEDULE: controla cómo se reparten las iteraciones entre los diferentes
-         * hilos. Dos tipos de schedule:
-         *
-         * - static (por defecto): a cada hilo se le asigna una cantidad fija (chunks)
-         *   de iteraciones. Se hace en la compilación. Bueno si no varía la carga de
-         *   trabajo de cada hilo.
-         *
-         * - dynamic: estilo FIFO. Cada hilo realiza 'chunks' de iteraciones hasta que
-         *   todas se hayan acabado --> los hilos más rápidos realizarán más iteraciones.
-         *   Se hace en tiempo de ejecución --> Añade excesos de computación indirecta.
-         *   Bueno si la carga de trabajo de cada hilo varía.
-         *
-         * COLLAPSE(N): Especifica cuántos bucles (N), a partir de la cláusula, dentro
-         * de un bucle anidado deben 'colapsar' en un solo espacio de iteracion y divididos
-         * respecto al tipo de SCHEDULE indicado.
-         */
-
         for (int channel = 0; channel < 3; channel++) {
 #pragma omp parallel for collapse(2)
             for (int i = 0; i < ALTURA; ++i) {
@@ -160,7 +141,7 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
 #pragma omp parallel
     {
-#pragma omp for collapse(2)
+#pragma omp for
         for (int i = 0; i < ALTURA; ++i) {
             for (int j = 0; j < ANCHURA; ++j) {
                 if (matrizPixeles[i][j].r > maximosYMinimos[0]) {
@@ -171,7 +152,7 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
                 }
             }
         }
-#pragma omp for collapse(2)
+#pragma omp for
         for (int i = 0; i < ALTURA; ++i) {
             for (int j = 0; j < ANCHURA; ++j) {
                 if (matrizPixeles[i][j].g > maximosYMinimos[1]) {
@@ -182,7 +163,7 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
                 }
             }
         }
-#pragma omp for collapse(2)
+#pragma omp for
         for (int i = 0; i < ALTURA; ++i) {
             for (int j = 0; j < ANCHURA; ++j) {
                 if (matrizPixeles[i][j].b > maximosYMinimos[2]) {
@@ -268,14 +249,14 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
     int centroX = ANCHURA / 2;
     int centroY = ALTURA / 2;
 
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ALTURA; ++j) {
             double suma = pow(i - centroY, 2) + pow(j - centroX, 2);
             if (suma > pow(radio, 2)) {
-                matriz[i][j].r = (unsigned char) (matriz[i][j].r * 0.3);
-                matriz[i][j].g = (unsigned char) (matriz[i][j].g * 0.59);
-                matriz[i][j].b = (unsigned char) (matriz[i][j].b * 0.11);
+                matriz[i][j].r *= 0.3;
+                matriz[i][j].g *= 0.59;
+                matriz[i][j].b *= 0.11;
             }
         }
 
@@ -294,9 +275,9 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
 void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
-            imagen[i][j].r = imagen[i][j].r * mascara[i][j].r;
-            imagen[i][j].g = imagen[i][j].g * mascara[i][j].g;
-            imagen[i][j].b = imagen[i][j].b * mascara[i][j].b;
+            imagen[i][j].r *= mascara[i][j].r;
+            imagen[i][j].g *= mascara[i][j].g;
+            imagen[i][j].b *= mascara[i][j].b;
         }
     }
     escribirSalida(imagen, rutaSalida);
