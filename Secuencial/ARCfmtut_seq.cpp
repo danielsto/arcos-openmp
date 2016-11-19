@@ -5,7 +5,6 @@
 #include <cmath>
 #include <iomanip>
 #include <cstring>
-#include <omp.h>
 #include <chrono>
 #include <vector>
 #include <array>
@@ -274,9 +273,9 @@ void filtroBN(pixel **matrizPixeles, double radio, char *rutaSalida) {
         for (int j = 0; j < ALTURA; ++j) {
             double suma = pow(i - centroY, 2) + pow(j - centroX, 2);
             if (suma > pow(radio, 2)) {
-                matrizPixeles[i][j].r = (unsigned char) (matrizPixeles[i][j].r * 0.3);
-                matrizPixeles[i][j].g = (unsigned char) (matrizPixeles[i][j].g * 0.59);
-                matrizPixeles[i][j].b = (unsigned char) (matrizPixeles[i][j].b * 0.11);
+                matrizPixeles[i][j].r *= 0.3;
+                matrizPixeles[i][j].g *= 0.59;
+                matrizPixeles[i][j].b *= 0.11;
             }
         }
     }
@@ -299,9 +298,9 @@ void filtroBN(pixel **matrizPixeles, double radio, char *rutaSalida) {
 void mascara(pixel **matrizPixeles, pixel **matrizMascara, char *rutaSalida) {
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
-            matrizPixeles[i][j].r = matrizPixeles[i][j].r * matrizMascara[i][j].r;
-            matrizPixeles[i][j].g = matrizPixeles[i][j].g * matrizMascara[i][j].g;
-            matrizPixeles[i][j].b = matrizPixeles[i][j].b * matrizMascara[i][j].b;
+            matrizPixeles[i][j].r *= matrizMascara[i][j].r;
+            matrizPixeles[i][j].g *= matrizMascara[i][j].g;
+            matrizPixeles[i][j].b *= matrizMascara[i][j].b;
         }
     }
     escribirSalida(matrizPixeles, rutaSalida);
