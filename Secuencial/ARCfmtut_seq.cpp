@@ -148,7 +148,8 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
  * orden de Rojo, Verde y Azul.
  * Se crea un array de tamaño 6 que contiene en sus primeras 3 posiciones los valores máximos de
  * las tres matrices y en sus siguientes 3 posiciones los valores mínimos. Recorre los tres canales
- * de color RGB, comparando los valores leídos con los anteriores valores máximos y mínimos,
+ * de color RGB en un for independiente, comparando los valores leídos con los anteriores valores
+ * máximos y mínimos,
  * actualizándolos si es necesario.
  * @param matrizPixeles Matriz de píxeles que se corresponde con la imagen a analizar
  * @param rutaSalida Archivo en el que se escribirá el resultado.
@@ -157,44 +158,39 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
 void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
     auto start = std::chrono::high_resolution_clock::now();
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
-    for (int canal = 0; canal < 3; ++canal) {
-        for (int i = 0; i < ALTURA; ++i) {
-            for (int j = 0; j < ANCHURA; ++j) {
-                switch (canal) {
-                    case 0:
-                        if (matrizPixeles[i][j].r > maximosYMinimos[0]) {
-                            maximosYMinimos[0] = matrizPixeles[i][j].r;
-                            break;
-                        }
-                        if (matrizPixeles[i][j].r < maximosYMinimos[3]) {
-                            maximosYMinimos[3] = matrizPixeles[i][j].r;
-                            break;
-                        }
-                        break;
-
-                    case 1:
-                        if (matrizPixeles[i][j].g > maximosYMinimos[1]) {
-                            maximosYMinimos[1] = matrizPixeles[i][j].g;
-                            break;
-                        }
-                        if (matrizPixeles[i][j].g < maximosYMinimos[4]) {
-                            maximosYMinimos[4] = matrizPixeles[i][j].g;
-                            break;
-                        }
-                        break;
-                    case 2:
-                        if (matrizPixeles[i][j].b > maximosYMinimos[2]) {
-                            maximosYMinimos[2] = matrizPixeles[i][j].b;
-                            break;
-                        }
-                        if (matrizPixeles[i][j].b < maximosYMinimos[5]) {
-                            maximosYMinimos[5] = matrizPixeles[i][j].b;
-                            break;
-                        }
-                        break;
-                    default:
-                        break;
-                }
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            if (matrizPixeles[i][j].r > maximosYMinimos[0]) {
+                maximosYMinimos[0] = matrizPixeles[i][j].r;
+                break;
+            }
+            if (matrizPixeles[i][j].r < maximosYMinimos[3]) {
+                maximosYMinimos[3] = matrizPixeles[i][j].r;
+                break;
+            }
+        }
+    }
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            if (matrizPixeles[i][j].g > maximosYMinimos[1]) {
+                maximosYMinimos[1] = matrizPixeles[i][j].g;
+                break;
+            }
+            if (matrizPixeles[i][j].g < maximosYMinimos[4]) {
+                maximosYMinimos[4] = matrizPixeles[i][j].g;
+                break;
+            }
+        }
+    }
+    for (int i = 0; i < ALTURA; ++i) {
+        for (int j = 0; j < ANCHURA; ++j) {
+            if (matrizPixeles[i][j].b > maximosYMinimos[2]) {
+                maximosYMinimos[2] = matrizPixeles[i][j].b;
+                break;
+            }
+            if (matrizPixeles[i][j].b < maximosYMinimos[5]) {
+                maximosYMinimos[5] = matrizPixeles[i][j].b;
+                break;
             }
         }
     }
@@ -202,7 +198,8 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
     ofstream outputFile(rutaSalida);
     if (!outputFile.is_open()) {
         cerr << "El fichero de salida no se ha creado correctamente."
-                "Es posible que la ruta de salida no sea correcta." << endl;
+                "Es posible que la ruta de salida no sea correcta." <<
+             endl;
         exit(-1);
     }
     outputFile << maximosYMinimos[0] << " " << maximosYMinimos[3] << " "
