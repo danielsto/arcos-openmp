@@ -302,49 +302,33 @@ void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
     escribirSalida(imagen, rutaSalida);
 }
 
-void rotacion(pixel **imagen, double grados, char *rutaSalida) {
-    double yMax = ALTURA;
-    double xMax = ANCHURA;
-    double filaCentro = yMax / 2;
-    double colCentro = xMax / 2;
-    int coorXrotada;
-    int coorYrotada;
-
-
+void rotacion(pixel **matrizPixeles, double grados, char *rutaSalida) {
+    double filaCentro = ALTURA / 2;
+    double colCentro = ANCHURA / 2;
+    int coorXrotada = 0;
+    int coorYrotada = 0;
     double radianes = grados * M_PI / 180;
 
-    pixel **rotada = new pixel *[ALTURA];
+    pixel **rotada = new pixel *[ALTURA]();
     for (int i = 0; i < ALTURA; i++) {
-        rotada[i] = new pixel[ANCHURA];
+        rotada[i] = new pixel[ANCHURA]();
     }
 
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-            rotada[i][j].r = 0;
-            rotada[i][j].g = 0;
-            rotada[i][j].b = 0;
-        }
-    }
-
+#pragma omp parallel for private(coorXrotada, coorYrotada)
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
 
+            coorXrotada = (int) ceil((cos(radianes) * (j - colCentro) - sin(radianes) * (i - filaCentro)) + colCentro);
+            coorYrotada = (int) ceil((sin(radianes) * (j - colCentro) + cos(radianes) * (i - filaCentro)) + filaCentro);
 
-            coorXrotada = ceil((cos(radianes) * (j - colCentro) - sin(radianes) * (i - filaCentro)) + colCentro);
-            coorYrotada = ceil((sin(radianes) * (j - colCentro) + cos(radianes) * (i - filaCentro)) + filaCentro);
-
-
-            if (coorXrotada < 0 || coorXrotada > ANCHURA - 1 || coorYrotada < 0 || coorYrotada > ALTURA - 1) {
-            } else {
-                rotada[coorYrotada][coorXrotada].r = imagen[i][j].r;
-                rotada[coorYrotada][coorXrotada].g = imagen[i][j].g;
-                rotada[coorYrotada][coorXrotada].b = imagen[i][j].b;
+            if (coorXrotada >= 0 && coorXrotada <= ANCHURA - 1 && coorYrotada >= 0 && coorYrotada <= ALTURA - 1) {
+                rotada[coorYrotada][coorXrotada] = matrizPixeles[i][j];
             }
         }
     }
 
     escribirSalida(rotada, rutaSalida);
-
+    delete[] matrizPixeles;
 }
 
 int main(int argv, char **argc) {
