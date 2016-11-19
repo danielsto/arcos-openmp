@@ -53,7 +53,7 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
          */
 
         for (int channel = 0; channel < 3; channel++) {
-        #pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2)
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     switch (channel) {
@@ -116,7 +116,7 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
 
 
         for (int channel = 0; channel < 3; channel++) {
-        #pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2)
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     if (!archivo.eof()) {
@@ -156,36 +156,56 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
  * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
 
-void calcularMaximosYMinimos(pixel **matriz, char *rutaSalida) {
+void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
-    for (int i = 0; i < ALTURA; ++i) {
-        for (int j = 0; j < ANCHURA; ++j) {
-
-            if (matriz[i][j].r > maximosYMinimos[0]) {
-                maximosYMinimos[0] = matriz[i][j].r;
+#pragma omp parallel
+    {
+#pragma omp for collapse(2)
+        for (int i = 0; i < ALTURA; ++i) {
+            for (int j = 0; j < ANCHURA; ++j) {
+                if (matrizPixeles[i][j].r > maximosYMinimos[0]) {
+                    maximosYMinimos[0] = matrizPixeles[i][j].r;
+                }
+                if (matrizPixeles[i][j].r < maximosYMinimos[3]) {
+                    maximosYMinimos[3] = matrizPixeles[i][j].r;
+                }
             }
-            if (matriz[i][j].g > maximosYMinimos[1]) {
-                maximosYMinimos[1] = matriz[i][j].g;
+        }
+#pragma omp for collapse(2)
+        for (int i = 0; i < ALTURA; ++i) {
+            for (int j = 0; j < ANCHURA; ++j) {
+                if (matrizPixeles[i][j].g > maximosYMinimos[1]) {
+                    maximosYMinimos[1] = matrizPixeles[i][j].g;
+                }
+                if (matrizPixeles[i][j].g < maximosYMinimos[4]) {
+                    maximosYMinimos[4] = matrizPixeles[i][j].g;
+                }
             }
-            if (matriz[i][j].b > maximosYMinimos[2]) {
-                maximosYMinimos[2] = matriz[i][j].b;
-            }
-            if (matriz[i][j].r < maximosYMinimos[3]) {
-                maximosYMinimos[3] = matriz[i][j].r;
-            }
-            if (matriz[i][j].g < maximosYMinimos[4]) {
-                maximosYMinimos[4] = matriz[i][j].g;
-            }
-            if (matriz[i][j].b < maximosYMinimos[5]) {
-                maximosYMinimos[5] = matriz[i][j].b;
+        }
+#pragma omp for collapse(2)
+        for (int i = 0; i < ALTURA; ++i) {
+            for (int j = 0; j < ANCHURA; ++j) {
+                if (matrizPixeles[i][j].b > maximosYMinimos[2]) {
+                    maximosYMinimos[2] = matrizPixeles[i][j].b;
+                }
+                if (matrizPixeles[i][j].b < maximosYMinimos[5]) {
+                    maximosYMinimos[5] = matrizPixeles[i][j].b;
+                }
             }
         }
     }
 
     ofstream outputFile(rutaSalida);
+    if (!outputFile.is_open()) {
+        cerr << "El fichero de salida no se ha creado correctamente."
+                "Es posible que la ruta de salida no sea correcta." << endl;
+        exit(-1);
+    }
     outputFile << maximosYMinimos[0] << " " << maximosYMinimos[3] << " "
                << maximosYMinimos[1] << " " << maximosYMinimos[4] << " "
                << maximosYMinimos[2] << " " << maximosYMinimos[5];
+
+    delete[] matrizPixeles;
 }
 
 /**
@@ -201,13 +221,13 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
 
     vector<int> result(tramos);
     double grises;
-    double valoresTramo= 256 / (double) tramos;
+    double valoresTramo = 256 / (double) tramos;
 
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
             grises = matriz[i][j].r * 0.3 + matriz[i][j].g * 0.59 + matriz[i][j].b * 0.11;
-            for(int contador= 0; contador<tramos; contador++){
+            for (int contador = 0; contador < tramos; contador++) {
                 if (grises >= contador * valoresTramo &&
                     grises < (contador + 1) * valoresTramo) {
                     result[contador] = result[contador] + 1;
@@ -248,7 +268,7 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
     int centroX = ANCHURA / 2;
     int centroY = ALTURA / 2;
 
-    #pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2)
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ALTURA; ++j) {
             double suma = pow(i - centroY, 2) + pow(j - centroX, 2);
@@ -261,7 +281,7 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
 
     }
     double t2 = omp_get_wtime();
-    double diff = (t2-t1)*pow(10,3);
+    double diff = (t2 - t1) * pow(10, 3);
     cout << "Tiempo transcurrido: " << diff << " milisegundos" << endl;
     /**
      * ---- TIEMPOS MEDIDOS ----
@@ -328,12 +348,14 @@ void rotacion(pixel **imagen, double grados, char *rutaSalida) {
 }
 
 int main(int argv, char **argc) {
+    auto start = std::chrono::high_resolution_clock::now();
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
     char *parametroLetra = NULL;
     int ejecucion = -1;
     for (int i = 1; i < argv; ++i) {
+        cout << omp_get_thread_num() << endl;
         if (strcmp(argc[i], "-u") == 0) {
             try {
                 ejecucion = stoi(argc[i + 1]);
@@ -362,6 +384,9 @@ int main(int argv, char **argc) {
             continue;
         }
     }
+    auto elapsed = std::chrono::high_resolution_clock::now() - start;
+    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    cout << "Tiempo transcurrido: " << microseconds << " microsegundos\n";
 
     if (rutaEntrada == NULL) {
         cerr << "No se ha especificado el fichero de entrada. Inserte el parámetro -i seguido de la ruta." << endl;
@@ -387,7 +412,7 @@ int main(int argv, char **argc) {
             }
 
             try {
-                histograma(generarMatrizPixeles(rutaEntrada),rutaSalida, stoi(parametroExtra));
+                histograma(generarMatrizPixeles(rutaEntrada), rutaSalida, stoi(parametroExtra));
             } catch (const std::invalid_argument) {
                 cerr << "El parámetro indicado por -t tiene que ser un número entero." << endl;
                 exit(-1);
