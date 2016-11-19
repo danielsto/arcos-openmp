@@ -17,6 +17,9 @@ using namespace std;
 int ALTURA = 0;
 int ANCHURA = 0;
 
+double t2=0;
+double t1=0;
+
 struct pixel {
     unsigned char r;
     unsigned char g;
@@ -356,6 +359,10 @@ void mascara(pixel **matrizPixeles, pixel **matrizMascara, char *rutaSalida) {
  * */
 
 void rotacion(pixel **matrizPixeles, double grados, char *rutaSalida) {
+
+    t1 = t1 + omp_get_wtime();
+
+
     double filaCentro = ALTURA / 2;
     double colCentro = ANCHURA / 2;
     int coorXrotada = 0;
@@ -367,6 +374,7 @@ void rotacion(pixel **matrizPixeles, double grados, char *rutaSalida) {
         rotada[i] = new pixel[ANCHURA]();
     }
 
+    #pragma omp for collapse(2) private(coorXrotada, coorYrotada)
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
 
@@ -378,12 +386,15 @@ void rotacion(pixel **matrizPixeles, double grados, char *rutaSalida) {
             }
         }
     }
+
+    t2 = t2 +omp_get_wtime();
+
     escribirSalida(rotada, rutaSalida);
     delete[] matrizPixeles;
 }
 
 int main(int argv, char **argc) {
-    auto start = std::chrono::high_resolution_clock::now();
+
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
@@ -479,7 +490,9 @@ int main(int argv, char **argc) {
                 exit(-1);
             }
             try {
-                rotacion(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
+                for (int i=0; i<10 ; ++i) {
+                    rotacion(generarMatrizPixeles(rutaEntrada), stod(parametroExtra), rutaSalida);
+                }
             } catch (const std::invalid_argument) {
                 cerr << "El parámetro indicado por -a tiene que ser un NÚMERO DECIMAL." << endl;
                 exit(-1);
@@ -516,8 +529,11 @@ int main(int argv, char **argc) {
                  << "4: Filtro blanco y negro." << endl;
             exit(-1);
     }
-    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Tiempo transcurrido: " << microseconds << " microsegundos\n";
+
+
+    double diff = (t2-t1)*pow(10,6);
+    cout << "Tiempo transcurrido: " << diff/10 << " microsegundos" << endl;
+
+
     return 0;
 }
