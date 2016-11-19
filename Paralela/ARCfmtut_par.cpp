@@ -23,7 +23,12 @@ struct pixel {
     unsigned char b;
 };
 
-
+/**
+ * Función que recoge los valores de la matriz de estructuras pixel y las vierte sobre
+ * un buffer que posteriormente se escribirá en la ruta indicada por parámetro.
+ * @param matrizPixeles
+ * @param rutaSalida
+ */
 void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
     ofstream archivo(rutaSalida, ios::binary);
     if (archivo.is_open()) {
@@ -35,20 +40,20 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
 
 #pragma omp parallel
         {
-#pragma omp for collapse(2)
+#pragma omp for
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     buffer[i * ANCHURA + j] = matrizPixeles[i][j].r;
                 }
             }
-#pragma omp for collapse(2)
+#pragma omp for
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     buffer[i * ANCHURA + j + ALTURA * ANCHURA] = matrizPixeles[i][j].g;
 
                 }
             }
-#pragma omp for collapse(2)
+#pragma omp for
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
@@ -103,27 +108,25 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
 #pragma omp parallel
         {
 #pragma omp for
-            for (int i = 0; i < ALTURA; ++i) {
+            for (int i = 0; i < ALTURA; ++i) { // se reparten las iteraciones de este bucle entre los hilos
                 for (int j = 0; j < ANCHURA; ++j) {
                     matrizPixeles[i][j].r = (unsigned char) buffer[i * ANCHURA + j];
                 }
             }
 #pragma omp for
-            for (int i = 0; i < ALTURA; ++i) {
+            for (int i = 0; i < ALTURA; ++i) { // se reparten las iteraciones de este bucle entre los hilos
                 for (int j = 0; j < ANCHURA; ++j) {
                     matrizPixeles[i][j].g = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA];
 
                 }
             }
 #pragma omp for
-            for (int i = 0; i < ALTURA; ++i) {
+            for (int i = 0; i < ALTURA; ++i) { // se reparten las iteraciones de este bucle entre los hilos
                 for (int j = 0; j < ANCHURA; ++j) {
                     matrizPixeles[i][j].b = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA * 2];
                 }
             }
         }
-
-
         archivo.close();
     } else {
         cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
@@ -138,9 +141,7 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
  * orden de Rojo, Verde y Azul.
  * Se crea un array de tamaño 6 que contiene en sus primeras 3 posiciones los valores máximos de
  * las tres matrices y en sus siguientes 3 posiciones los valores mínimos.
- * @param matrizR
- * @param matrizG
- * @param matrizB
+ * @param matrizPixeles
  * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
 
@@ -199,10 +200,9 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
 /**
  * Construye una matriz con los valores de los píxeles de la imagen transformados a escala de
  * grises necesaria por parámetro para la función histograma()
- * @param rojo
- * @param verde
- * @param azul
- * @return
+ * @param matriz
+ * @param rutaSalida
+ * @param tramos
  */
 void histograma(pixel **matriz, char *rutaSalida, int tramos) {
     auto start = std::chrono::high_resolution_clock::now();
@@ -246,10 +246,9 @@ void histograma(pixel **matriz, char *rutaSalida, int tramos) {
  * Aplica un filtro blanco y negro a las regiones de la imagen que quedan fuera del circulo de
  * radio indicado por parámetro y con centro en el centro de la imagen. Las regiones dentro del
  * círculo quedan igual.
- * @param matrizR
- * @param matrizG
- * @param matrizB
+ * @param matriz
  * @param radio Radio del círculo dentro del cual no se aplicará el filtro
+ * @param rutaSalida
  * */
 void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
     int centroX = ANCHURA / 2;
@@ -269,7 +268,13 @@ void filtroBN(pixel **matriz, double radio, char *rutaSalida) {
     }
     escribirSalida(matriz, rutaSalida);
 }
-
+/**
+ * Método que aplica a la imagen de entrada una mascara indicada también por parámetro. Recorre
+ * cada pixel de la imagen y aplica la máscara por canales a la imagen de entrada.
+ * @param imagen
+ * @param mascara
+ * @param rutaSalida
+ */
 void mascara(pixel **imagen, pixel **mascara, char *rutaSalida) {
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
