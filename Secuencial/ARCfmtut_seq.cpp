@@ -155,6 +155,7 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
  */
 
 void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
+    auto start = std::chrono::high_resolution_clock::now();
     array<int, 6> maximosYMinimos = {0, 0, 0, 0, 0, 0};
     for (int canal = 0; canal < 3; ++canal) {
         for (int i = 0; i < ALTURA; ++i) {
@@ -209,6 +210,9 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
                << maximosYMinimos[2] << " " << maximosYMinimos[5];
 
     delete[] matrizPixeles;
+    auto elapsed = std::chrono::high_resolution_clock::now() - start;
+    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    cout << "Tiempo transcurrido: " << microseconds << " microsegundos\n";
 }
 
 /**
@@ -383,7 +387,6 @@ void rotacion(pixel **matrizPixeles, double grados, char *rutaSalida) {
 }
 
 int main(int argv, char **argc) {
-    auto start = std::chrono::high_resolution_clock::now();
     char *rutaEntrada = NULL;
     char *rutaSalida = NULL;
     char *parametroExtra = NULL;
@@ -516,8 +519,6 @@ int main(int argv, char **argc) {
                  << "4: Filtro blanco y negro." << endl;
             exit(-1);
     }
-    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Tiempo transcurrido: " << microseconds << " microsegundos\n";
+
     return 0;
 }
