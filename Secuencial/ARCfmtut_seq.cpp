@@ -209,39 +209,35 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
 }
 
 /**
- *La función histograma recibe como parametros una matriz de estrucutras pixel que contiene la imagen sobre la que se tiene
- * que realizar el histograma, una ruta a un fichero en el que se escribirá el histograma y el número de tramos que deberá tener.
+ * Método que calcula un histograma de colores en escala de grises de una imagen pasada por parámetros.
+ * Para evitar errores, se comprueba que el número de tramos pasado por parámetro es mayor que cero.
+ * Con este número se calcula el número de intervalos que tendrá el histograma. Se creará un vector con tantas
+ * posiciones como intervalos tenga el histograma.
+ * La matriz de imagen se recorre pixel a pixel, transformando el color correspondiente a escala de grises, para
+ * posteriormente comprobar a qué intervalo pertenece el valor resultante. Cuando un valor pertenezca a un intervalo,
+ * se incrementa en uno el número que aparezca en la posición del vector, de forma que acabe mostrando la frecuencia
+ * con la que aparecen los valores en la imagen.
+ * Por último, se escribe el array resultante en el fichero de salida, que contiene el histograma completo.
  *
- * Primero se comprueba que el número de tramos pasado como parametro es mayor que 0. Despueés se crea un array donde se almacenará
- * el histograma, se calcula el rango de valores que tendrá cada tramo y el valor medio del histograma.
- *
- * En segundo lugar se recorre la matriz de pixeles para transformarla a escala de grises, y se coloca cada valor en el tramo
- * correspondiente. Para ello, primero se comprueba si el valor en escala de grises es mayor o menor que el valor medio del
- * histograma. Una vez que se realiza esta comprobación, se compara el valor en escala de grises con los valores extremos de
- * cada tramo. En caso de que el valor se encuentre entre estos dos extremos, significa que está contenido en ese tramo, y se
- * suma 1 al número de valores que hay en ese tramo.
- *
- * Por último, se escribe el array resultante en el fichero de salida, especifcado como parametro,que contiene
- * el histograma completo.
- *
- * @param matrizPixeles
- * @param rutaSalida
- * @param tramos
+ * @param matrizPixeles Matriz de estructuras pixel que contiene la imagen sobre la que se tiene que realizar el
+ * histograma
+ * @param rutaSalida Ruta del fichero en el que se escribirá el histograma
+ * @param tramos Número de tramos que deberá tener el histograma
  */
 void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
     if (tramos <= 0) {
         cerr << "El número de tramos debería ser mayor que 0.";
         exit(-1);
     }
-    vector<int> result(tramos);
+    vector<int> histograma(tramos);
     double grises;
-    double intervaloSize = 256 / (double) tramos;
+    double rangoIntervalo = 256 / (double) tramos;
 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < ANCHURA; j++) {
             grises = matrizPixeles[i][j].r * 0.3 + matrizPixeles[i][j].g * 0.59 + matrizPixeles[i][j].b * 0.11;
-            int intervalo = (int) floor(grises / intervaloSize);
-            result[intervalo] +=1;
+            int intervalo = (int) floor(grises / rangoIntervalo);
+            histograma[intervalo] += 1;
         }
     }
 
@@ -253,7 +249,7 @@ void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
     }
 
     for (int i = 0; i < tramos; ++i) {
-        outputFile << result[i];
+        outputFile << histograma[i];
         if (i != tramos - 1) {
             outputFile << " ";
         }
