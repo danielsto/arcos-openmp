@@ -33,6 +33,7 @@ struct pixel {
  * @param rutaEntrada Indica la ruta del archivo de entrada a leer.
  */
 pixel **generarMatrizPixeles(char *rutaEntrada) {
+    double t1 = omp_get_wtime();
     ifstream archivo(rutaEntrada, ios::binary);
     int alturaMatrizActual = 0;
     int anchuraMatrizActual = 0;
@@ -69,30 +70,31 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
         archivo.seekg(8, ios::beg);
         archivo.read(buffer, fileSize - 8);
 
-        for (int canal = 0; canal < 3; canal++) {
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
-                    switch (canal) {
-                        case 0:
-                            matrizPixeles[i][j].r = (unsigned char) buffer[i * ANCHURA + j];
-                            break;
-                        case 1:
-                            matrizPixeles[i][j].g = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA];
-                            break;
-                        case 2:
-                            matrizPixeles[i][j].b = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA * 2];
-                            break;
-                        default:
-                            break;
-                    }
+                    matrizPixeles[i][j].r = (unsigned char) buffer[i * ANCHURA + j];
                 }
             }
-        }
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    matrizPixeles[i][j].g = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA];
+
+                }
+            }
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    matrizPixeles[i][j].b = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA * 2];
+                }
+            }
         archivo.close();
     } else {
         cerr << "El fichero de entrada no existe en la ruta especificada." << endl;
         exit(-1);
     }
+
+    double t2 = omp_get_wtime();
+    double diff = (t2 - t1) * 1000;
+    printf("Tiempo de lectura: %f milisegundos\n", diff);
     return matrizPixeles;
 }
 
@@ -106,6 +108,7 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
  * @param rutaSalida Ruta del archivo binario que será escrito.
  */
 void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
+    double t1 = omp_get_wtime();
     ofstream archivo(rutaSalida, ios::binary);
     if (archivo.is_open()) {
         unsigned char *buffer = new unsigned char[ALTURA * ANCHURA * 3];
@@ -113,25 +116,22 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
         archivo.write((char *) &ALTURA, 4);
         archivo.write((char *) &ANCHURA, 4);
 
-        for (int channel = 0; channel < 3; channel++) {
             for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
-                    switch (channel) {
-                        case 0:
-                            buffer[i * ANCHURA + j] = matrizPixeles[i][j].r;
-                            break;
-                        case 1:
-                            buffer[i * ANCHURA + j + ALTURA * ANCHURA] = matrizPixeles[i][j].g;
-                            break;
-                        case 2:
-                            buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
-                            break;
-                        default:
-                            break;
-                    }
+                    buffer[i * ANCHURA + j] = matrizPixeles[i][j].r;
                 }
             }
-        }
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    buffer[i * ANCHURA + j + ALTURA * ANCHURA] = matrizPixeles[i][j].g;
+
+                }
+            }
+            for (int i = 0; i < ALTURA; ++i) {
+                for (int j = 0; j < ANCHURA; ++j) {
+                    buffer[i * ANCHURA + j + ALTURA * ANCHURA * 2] = matrizPixeles[i][j].b;
+                }
+            }
         archivo.write((const char *) buffer, ALTURA * ANCHURA * 3);
         archivo.close();
         delete[] matrizPixeles;
@@ -140,6 +140,9 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
                 "Es posible que la ruta de salida no sea correcta." << endl;
         exit(-1);
     }
+    double t2 = omp_get_wtime();
+    double diff = (t2 - t1) * 1000;
+    printf("Tiempo de escritura: %f milisegundos\n", diff);
 }
 
 
