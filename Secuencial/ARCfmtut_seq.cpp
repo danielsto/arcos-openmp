@@ -99,9 +99,9 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
 
 /**
  * Método que escribe en un fichero binario la matriz de píxeles recibida por parámetros.
- * La escritura comienza escribiendo las variables globales ALTURA y ANCHURA, para después recorrer los canales
- * de la matriz de píxeles guardando en una cadena de caracteres los colores uno detrás de otro. Esta cadena será
- * escrita en la ruta pasada por parámetros, creando el fichero si no existe.
+ * La escritura comienza escribiendo el contenido de las variables globales ALTURA y ANCHURA, para después recorrer
+ * los canales de la matriz de píxeles guardando en una cadena de caracteres (buffer) los colores uno detrás de otro.
+ * Esta cadena será escrita en la ruta pasada por parámetros, creando el fichero si no existe.
  * Se comprueba que el archivo se ha creado correctamente antes de intentar escribir en él.
  * @param matrizPixeles Matriz que será escrita en el archivo binario.
  * @param rutaSalida Ruta del archivo binario que será escrito.

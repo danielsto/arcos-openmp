@@ -75,20 +75,20 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
 #pragma omp parallel
         {
 #pragma omp for
-            for (int i = 0; i < ALTURA; ++i) { // se reparten las iteraciones de este bucle entre los hilos
+            for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     matrizPixeles[i][j].r = (unsigned char) buffer[i * ANCHURA + j];
                 }
             }
 #pragma omp for
-            for (int i = 0; i < ALTURA; ++i) { // se reparten las iteraciones de este bucle entre los hilos
+            for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     matrizPixeles[i][j].g = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA];
 
                 }
             }
 #pragma omp for
-            for (int i = 0; i < ALTURA; ++i) { // se reparten las iteraciones de este bucle entre los hilos
+            for (int i = 0; i < ALTURA; ++i) {
                 for (int j = 0; j < ANCHURA; ++j) {
                     matrizPixeles[i][j].b = (unsigned char) buffer[i * ANCHURA + j + ANCHURA * ALTURA * 2];
                 }
@@ -104,9 +104,9 @@ pixel **generarMatrizPixeles(char *rutaEntrada) {
 
 /**
  * Método que escribe en un fichero binario la matriz de píxeles recibida por parámetros.
- * La escritura comienza escribiendo las variables globales ALTURA y ANCHURA, para después recorrer los canales
- * de la matriz de píxeles guardando en una cadena de caracteres los colores uno detrás de otro. Esta cadena será
- * escrita en la ruta pasada por parámetros, creando el fichero si no existe.
+ * La escritura comienza escribiendo el contenido de las variables globales ALTURA y ANCHURA, para después recorrer
+ * los canales de la matriz de píxeles guardando en una cadena de caracteres (buffer) los colores uno detrás de otro.
+ * Esta cadena será escrita en la ruta pasada por parámetros, creando el fichero si no existe.
  * Se comprueba que el archivo se ha creado correctamente antes de intentar escribir en él.
  * @param matrizPixeles Matriz que será escrita en el archivo binario.
  * @param rutaSalida Ruta del archivo binario que será escrito.
