@@ -228,6 +228,13 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
  * con la que aparecen los valores en la imagen.
  * Por último, se escribe el array resultante en el fichero de salida, que contiene el histograma completo.
  *
+ * Para paralelizar esta función, como se trata de una operación de acumulación de bucle, se añaden dos arrays para
+ * hacer lo mismo que haría la directiva reduction.
+ * Cada hilo tendrá una copia local del histograma almacenada en un array (histogramaPrivadoHilo)
+ * Todos los vectores locales de cada hilo se almacenan en otro array (arrayHistogramasPrivados)
+ * Se paraleliza el for que cambia cada pixel a escala de grises y almacena el valor en el vector local del hilo.
+ * Luego se suman los histogramas locales en un vector que será el histograma final(histogramaFinal).
+ *
  * @param matrizPixeles Matriz de píxeles que se corresponde con la imagen a analizar
  * @param rutaSalida Archivo en el que se escribirá el resultado.
  * @param tramos Número de tramos que deberá tener el histograma
@@ -285,6 +292,7 @@ void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
  * Aplica un filtro blanco y negro a las regiones de la imagen que quedan fuera del circulo cuyo
  * radio se indica por parámetros y cuyo centro se corresponde con en el centro de la imagen. Las regiones
  * dentro del círculo quedan igual.
+ *
  * @param matrizPixeles Matriz de píxeles que se corresponde con la imagen a analizar.
  * @param radio Radio del filtro.
  * @param rutaSalida Archivo en el que se escribirá el resultado.
