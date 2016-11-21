@@ -243,31 +243,17 @@ void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
         cerr << "El número de tramos debe ser mayor que 0.";
         exit(-1);
     }
-
-    vector<int> histogramaFinal(tramos);
+    int histograma[tramos] = {};
     double grises = 0;
-    double intervaloSize = 256 / (double) tramos;
+    double rangoIntervalo = 256 / (double) tramos;
 
-    vector<int *> arrayHistogramasPrivados(omp_get_max_threads());
-#pragma omp parallel
-    {
-        int hilos = omp_get_num_threads();
-        vector<int> histogramaPrivadoHilo(tramos);
-        arrayHistogramasPrivados[omp_get_thread_num()] = histogramaPrivadoHilo.data();
-
-#pragma omp for
-        for (int i = 0; i < ALTURA; i++) {
-            for (int j = 0; j < ANCHURA; j++) {
-                grises = matrizPixeles[i][j].r * 0.3 + matrizPixeles[i][j].g * 0.59 + matrizPixeles[i][j].b * 0.11;
-                int intervalo = (int) floor(grises / intervaloSize);
-                histogramaPrivadoHilo[intervalo] += 1;
-            }
-        }
-#pragma omp for
-        for (int j = 0; j < hilos; ++j) {
-            for (int i = 0; i < tramos; ++i) {
-                histogramaFinal[i] += arrayHistogramasPrivados[j][i];
-            }
+#pragma omp parallel for ordered schedule(auto)
+    for (int i = 0; i < ALTURA; i++) {
+        for (int j = 0; j < ANCHURA; j++) {
+            grises = matrizPixeles[i][j].r * 0.3 + matrizPixeles[i][j].g * 0.59 + matrizPixeles[i][j].b * 0.11;
+            int intervalo = (int) floor(grises / rangoIntervalo);
+#pragma omp ordered
+            histograma[intervalo] += 1;
         }
     }
 
@@ -279,7 +265,7 @@ void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
     }
 
     for (int i = 0; i < tramos; ++i) {
-        outputFile << histogramaFinal[i];
+        outputFile << histograma[i];
         if (i != tramos - 1) {
             outputFile << " ";
         }
@@ -368,16 +354,13 @@ void rotacion(pixel **matrizPixeles, double grados, char *rutaSalida) {
         rotada[i] = new pixel[ANCHURA]();
     }
 
-#pragma omp parallel for private(coorXrotada, coorYrotada) ordered
+#pragma omp parallel for private(coorXrotada, coorYrotada)
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
-
             coorXrotada = (int) ceil((cos(radianes) * (j - colCentro) - sin(radianes) * (i - filaCentro)) + colCentro);
             coorYrotada = (int) ceil((sin(radianes) * (j - colCentro) + cos(radianes) * (i - filaCentro)) + filaCentro);
 
-
             if (coorXrotada >= 0 && coorXrotada <= ANCHURA - 1 && coorYrotada >= 0 && coorYrotada <= ALTURA - 1) {
-#pragma omp ordered
                 rotada[coorYrotada][coorXrotada] = matrizPixeles[i][j];
             }
         }
