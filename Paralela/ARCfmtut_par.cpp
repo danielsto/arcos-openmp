@@ -212,7 +212,7 @@ void calcularMaximosYMinimos(pixel **matrizPixeles, char *rutaSalida) {
     outputFile << maximosYMinimos[0] << " " << maximosYMinimos[3] << " "
                << maximosYMinimos[1] << " " << maximosYMinimos[4] << " "
                << maximosYMinimos[2] << " " << maximosYMinimos[5];
-
+    outputFile.close();
     delete[] matrizPixeles;
 }
 
@@ -284,6 +284,7 @@ void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
             outputFile << " ";
         }
     }
+    outputFile.close();
     delete[] matrizPixeles;
 }
 
