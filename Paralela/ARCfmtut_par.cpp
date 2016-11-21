@@ -159,8 +159,7 @@ void escribirSalida(pixel **matrizPixeles, char *rutaSalida) {
  * Se crea un array de tamaño 6 que contiene en sus primeras 3 posiciones los valores máximos de
  * las tres matrices y en sus siguientes 3 posiciones los valores mínimos. Recorre los tres canales
  * de color RGB en un for independiente, comparando los valores leídos con los anteriores valores
- * máximos y mínimos,
- * actualizándolos si es necesario.
+ * máximos y mínimos, actualizándolos si es necesario.
  * @param matrizPixeles Matriz de píxeles que se corresponde con la imagen a analizar
  * @param rutaSalida Archivo en el que se escribirá el resultado.
  */
@@ -368,14 +367,16 @@ void rotacion(pixel **matrizPixeles, double grados, char *rutaSalida) {
         rotada[i] = new pixel[ANCHURA]();
     }
 
-#pragma omp parallel for private(coorXrotada, coorYrotada)
+#pragma omp parallel for private(coorXrotada, coorYrotada) ordered
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
 
             coorXrotada = (int) ceil((cos(radianes) * (j - colCentro) - sin(radianes) * (i - filaCentro)) + colCentro);
             coorYrotada = (int) ceil((sin(radianes) * (j - colCentro) + cos(radianes) * (i - filaCentro)) + filaCentro);
 
+
             if (coorXrotada >= 0 && coorXrotada <= ANCHURA - 1 && coorYrotada >= 0 && coorYrotada <= ALTURA - 1) {
+#pragma omp ordered
                 rotada[coorYrotada][coorXrotada] = matrizPixeles[i][j];
             }
         }
