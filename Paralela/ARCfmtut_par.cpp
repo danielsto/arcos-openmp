@@ -243,7 +243,7 @@ void histograma(pixel **matrizPixeles, char *rutaSalida, int tramos) {
         cerr << "El número de tramos debe ser mayor que 0.";
         exit(-1);
     }
-    int histograma[tramos] = {};
+    vector<int> histograma(tramos);
     double grises = 0;
     double rangoIntervalo = 256 / (double) tramos;
 
