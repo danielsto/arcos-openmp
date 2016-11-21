@@ -354,7 +354,7 @@ void rotacion(pixel **matrizPixeles, double grados, char *rutaSalida) {
         rotada[i] = new pixel[ANCHURA]();
     }
 
-#pragma omp parallel for private(coorXrotada, coorYrotada)
+#pragma omp parallel for private(coorXrotada, coorYrotada) schedule(dynamic)
     for (int i = 0; i < ALTURA; ++i) {
         for (int j = 0; j < ANCHURA; ++j) {
             coorXrotada = (int) ceil((cos(radianes) * (j - colCentro) - sin(radianes) * (i - filaCentro)) + colCentro);
